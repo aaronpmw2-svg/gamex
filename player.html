@@ -404,6 +404,10 @@
                 🎯 Be fastest to win points!<br>
                 🏆 4 different mini-games!
             </div>
+            
+            <div id="loading-message" style="display: none; color: #00ff00; margin-top: 20px; font-size: 0.8rem;">
+                Connecting to game...
+            </div>
         </div>
     </div>
 
@@ -449,6 +453,7 @@
         // FIREBASE & PLAYER STATE
         let database = null;
         let gameRef = null;
+        let firebaseConfig = null;
         
         const PLAYER_ID = localStorage.getItem('playerId') || 
             'player_' + Math.random().toString(36).substr(2, 9);
@@ -465,19 +470,119 @@
         let memoryCards = [];
         let currentRound = -1;
 
-        // Get Firebase config from host
-        function getFirebaseConfig() {
-            const saved = localStorage.getItem('firebaseConfig');
-            if (!saved) {
-                alert('Firebase not configured! Please open the host screen first.');
-                return null;
+        // Auto-initialize on page load
+        window.onload = function() {
+            // Check if database URL is in URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const dbUrl = urlParams.get('db');
+            
+            if (dbUrl) {
+                // Database URL provided - fetch config and initialize
+                fetchConfigAndInit(dbUrl);
+            } else {
+                // Check localStorage for saved database URL
+                const savedDbUrl = localStorage.getItem('databaseURL');
+                if (savedDbUrl) {
+                    fetchConfigAndInit(savedDbUrl);
+                } else {
+                    // No database URL - show helpful message
+                    document.getElementById('loading-message').style.display = 'block';
+                    document.getElementById('loading-message').innerHTML = 
+                        '⚠️ Please use the player link from the host screen!<br>Or enter database URL below:';
+                    
+                    // Add database URL input
+                    const dbInput = document.createElement('input');
+                    dbInput.type = 'text';
+                    dbInput.id = 'db-url-input';
+                    dbInput.placeholder = 'Database URL (from Firebase)';
+                    dbInput.style.marginTop = '15px';
+                    
+                    const dbBtn = document.createElement('button');
+                    dbBtn.className = 'btn';
+                    dbBtn.textContent = 'CONNECT';
+                    dbBtn.onclick = function() {
+                        const url = document.getElementById('db-url-input').value.trim();
+                        if (url) {
+                            localStorage.setItem('databaseURL', url);
+                            fetchConfigAndInit(url);
+                        }
+                    };
+                    
+                    document.querySelector('.join-card').appendChild(dbInput);
+                    document.querySelector('.join-card').appendChild(dbBtn);
+                }
             }
+        };
+
+        function fetchConfigAndInit(databaseURL) {
+            document.getElementById('loading-message').style.display = 'block';
+            document.getElementById('loading-message').textContent = 'Connecting to game...';
+            
+            // Initialize Firebase with minimal config just to fetch the full config
+            const tempConfig = {
+                databaseURL: databaseURL
+            };
+            
             try {
-                return JSON.parse(saved);
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(tempConfig);
+                }
+                database = firebase.database();
+                
+                // Fetch the full config from the database
+                database.ref('_config').once('value').then((snapshot) => {
+                    const config = snapshot.val();
+                    
+                    if (!config) {
+                        alert('Game not configured yet! Please make sure the host has set up the game first.');
+                        document.getElementById('loading-message').style.display = 'none';
+                        return;
+                    }
+                    
+                    firebaseConfig = config;
+                    
+                    // Reinitialize with full config if needed
+                    if (firebase.apps.length) {
+                        firebase.app().delete().then(() => {
+                            firebase.initializeApp(config);
+                            database = firebase.database();
+                            finishInit();
+                        });
+                    } else {
+                        firebase.initializeApp(config);
+                        database = firebase.database();
+                        finishInit();
+                    }
+                }).catch((error) => {
+                    alert('Error connecting to game: ' + error.message);
+                    document.getElementById('loading-message').style.display = 'none';
+                });
             } catch (e) {
-                alert('Invalid Firebase config!');
-                return null;
+                alert('Connection error: ' + e.message);
+                document.getElementById('loading-message').style.display = 'none';
             }
+        }
+
+        function finishInit() {
+            document.getElementById('loading-message').textContent = '✅ Connected! Enter your name to join.';
+            setTimeout(() => {
+                document.getElementById('loading-message').style.display = 'none';
+            }, 2000);
+            updateConnectionStatus();
+        }
+
+        function updateConnectionStatus() {
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snap) => {
+                const status = document.getElementById('connection-status');
+                if (snap.val() === true) {
+                    status.textContent = '🟢 OK';
+                    status.classList.remove('disconnected');
+                } else {
+                    status.textContent = '🔴 OFF';
+                    status.classList.add('disconnected');
+                }
+            });
         }
 
         // Join game
@@ -495,17 +600,9 @@
                 return;
             }
 
-            // Initialize Firebase
-            const config = getFirebaseConfig();
-            if (!config) return;
-
-            try {
-                firebase.initializeApp(config);
-                database = firebase.database();
-                updateConnectionStatus();
-            } catch (e) {
-                // Already initialized
-                database = firebase.database();
+            if (!database) {
+                alert('Not connected! Please refresh the page and try again.');
+                return;
             }
 
             playerState.name = name;
@@ -534,20 +631,6 @@
                 startListening();
             }).catch((error) => {
                 alert('Error joining game: ' + error.message);
-            });
-        }
-
-        function updateConnectionStatus() {
-            const connectedRef = database.ref('.info/connected');
-            connectedRef.on('value', (snap) => {
-                const status = document.getElementById('connection-status');
-                if (snap.val() === true) {
-                    status.textContent = '🟢 OK';
-                    status.classList.remove('disconnected');
-                } else {
-                    status.textContent = '🔴 OFF';
-                    status.classList.add('disconnected');
-                }
             });
         }
 

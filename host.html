@@ -511,15 +511,19 @@
 
                 <div class="player-url">
                     Players join at: <strong id="player-url">player.html</strong>
+                    <br>
+                    <button class="btn" onclick="copyPlayerUrl()" style="font-size: 0.8rem; padding: 12px 25px; margin-top: 15px;">
+                        📋 COPY PLAYER LINK
+                    </button>
                 </div>
 
                 <div class="instructions">
                     📱 HOW TO PLAY:<br>
-                    1️⃣ Players open player.html on their phones<br>
-                    2️⃣ Enter name + code shown above<br>
-                    3️⃣ Items appear on EVERYONE'S phone at once<br>
-                    4️⃣ First player to tap gets the points!<br>
-                    5️⃣ This screen shows live leaderboard
+                    1️⃣ Click "COPY PLAYER LINK" button below<br>
+                    2️⃣ Share that link with players in Teams chat<br>
+                    3️⃣ Players click link on their phones (auto-connects!)<br>
+                    4️⃣ Players enter name + game code shown above<br>
+                    5️⃣ Start game and have fun!
                 </div>
 
                 <div class="player-waiting">
@@ -659,6 +663,19 @@
                 firebase.initializeApp(config);
                 database = firebase.database();
                 
+                // Save config to Firebase so players can access it
+                database.ref('_config').set({
+                    apiKey: config.apiKey,
+                    authDomain: config.authDomain,
+                    databaseURL: config.databaseURL,
+                    projectId: config.projectId,
+                    storageBucket: config.storageBucket,
+                    messagingSenderId: config.messagingSenderId,
+                    appId: config.appId
+                }).then(() => {
+                    console.log('Config saved to Firebase for players');
+                });
+                
                 document.getElementById('config-screen').classList.remove('active');
                 document.getElementById('setup-screen').classList.add('active');
                 
@@ -688,9 +705,23 @@
         function setupGame() {
             document.getElementById('game-code-display').textContent = gameCode;
             
+            // Generate player URL with database parameter
             if (window.location.href.includes('http')) {
-                const url = window.location.href.replace('host.html', 'player.html');
-                document.getElementById('player-url').textContent = url;
+                const baseUrl = window.location.href.replace('host.html', 'player.html');
+                const config = JSON.parse(localStorage.getItem('firebaseConfig'));
+                const playerUrl = baseUrl + '?db=' + encodeURIComponent(config.databaseURL);
+                
+                // Store full URL for copying
+                window.fullPlayerUrl = playerUrl;
+                
+                document.getElementById('player-url').textContent = playerUrl;
+                
+                // Make it shorter for display if too long
+                if (playerUrl.length > 80) {
+                    const shortUrl = playerUrl.substring(0, 80) + '...';
+                    document.getElementById('player-url').textContent = shortUrl;
+                    document.getElementById('player-url').title = playerUrl; // Full URL on hover
+                }
             }
 
             // Create game session in Firebase
@@ -722,6 +753,37 @@
                 // Remove processed item
                 snapshot.ref.remove();
             });
+        }
+
+        function copyPlayerUrl() {
+            const url = window.fullPlayerUrl || document.getElementById('player-url').textContent;
+            
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('✅ Player link copied!\n\nShare this link with players:\n' + url);
+                }).catch(() => {
+                    fallbackCopy(url);
+                });
+            } else {
+                fallbackCopy(url);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                alert('✅ Player link copied!\n\nShare this link with players:\n' + text);
+            } catch (err) {
+                alert('📋 Copy this link:\n\n' + text);
+            }
+            document.body.removeChild(textarea);
         }
 
         function updatePlayerList() {
