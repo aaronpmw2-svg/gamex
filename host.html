@@ -948,6 +948,9 @@
             itemEl.dataset.itemId = itemId;
             document.getElementById('game-area').appendChild(itemEl);
 
+            // Update Firebase with initial position
+            gameRef.child('activeItems/' + itemId).set(itemData);
+
             // Animate fall
             let pos = -50;
             const fallSpeed = 2.5 + Math.random() * 1.5;
@@ -956,20 +959,18 @@
                 itemEl.style.top = pos + 'px';
                 itemData.y = pos;
 
+                // Update Firebase every few frames for smooth sync
+                if (Math.random() < 0.3) {  // Update ~30% of frames to reduce Firebase writes
+                    gameRef.child('activeItems/' + itemId + '/y').set(pos);
+                }
+
                 if (pos > window.innerHeight - 150) {
                     clearInterval(fallInterval);
                     delete gameState.activeItems[itemId];
                     itemEl.remove();
+                    gameRef.child('activeItems/' + itemId).remove();
                 }
             }, 20);
-
-            // Update Firebase with active items
-            gameRef.child('activeItems').update({ [itemId]: itemData });
-            
-            // Auto-remove from Firebase after timeout
-            setTimeout(() => {
-                gameRef.child('activeItems/' + itemId).remove();
-            }, 5000);
         }
 
         function startSpeedGame() {
