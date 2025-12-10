@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 Christmas Catch Clash - Host Screen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #0a0033 0%, #1a0033 50%, #000 100%);
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.3;
+        }
+
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Firebase Config Screen */
+        .config-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .config-panel {
+            background: rgba(0, 0, 0, 0.95);
+            border: 6px solid #ff00ff;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 0 60px #ff00ff;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .config-title {
+            font-size: 2rem;
+            color: #ff00ff;
+            text-shadow: 0 0 30px #ff00ff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .config-instructions {
+            font-size: 0.8rem;
+            line-height: 2;
+            color: #00ff00;
+            margin: 20px 0;
+        }
+
+        .config-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #00ffff;
+            padding: 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            color: #fff;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+
+        /* Setup Screen */
+        .setup-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .setup-panel {
+            background: rgba(0, 0, 0, 0.95);
+            border: 6px solid #00ffff;
+            padding: 50px 70px;
+            border-radius: 20px;
+            box-shadow: 0 0 60px #00ffff;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #ff00ff;
+            text-shadow: 0 0 30px #ff00ff, 0 0 60px #ff00ff, 5px 5px 0 #00ffff;
+            margin-bottom: 40px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 30px #ff00ff, 5px 5px 0 #00ffff; }
+            50% { text-shadow: 0 0 60px #ff00ff, 0 0 90px #ff00ff, 5px 5px 0 #00ffff; }
+        }
+
+        .game-code-box {
+            background: rgba(255, 255, 0, 0.1);
+            border: 5px solid #ffff00;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 15px;
+        }
+
+        .code-label {
+            font-size: 1rem;
+            color: #00ff00;
+            margin-bottom: 15px;
+        }
+
+        .code-value {
+            font-size: 4.5rem;
+            color: #ffff00;
+            text-shadow: 0 0 30px #ffff00;
+            letter-spacing: 0.3em;
+        }
+
+        .player-url {
+            font-size: 0.85rem;
+            color: #00ffff;
+            margin: 25px 0;
+            word-break: break-all;
+        }
+
+        .instructions {
+            font-size: 0.85rem;
+            line-height: 2.2;
+            color: #00ff00;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .player-waiting {
+            margin: 35px 0;
+            min-height: 80px;
+        }
+
+        .player-chip {
+            display: inline-block;
+            background: rgba(0, 255, 255, 0.2);
+            border: 3px solid #00ffff;
+            padding: 12px 25px;
+            margin: 8px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            animation: chipGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes chipGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.6); }
+        }
+
+        .btn {
+            background: linear-gradient(180deg, #ff0080, #cc0066);
+            border: 5px solid #ff00ff;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.3rem;
+            padding: 22px 55px;
+            cursor: pointer;
+            border-radius: 12px;
+            box-shadow: 0 0 35px #ff00ff;
+            transition: all 0.2s;
+            margin: 25px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 55px #ff00ff;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Game Screen */
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .hud-item {
+            background: rgba(0, 0, 0, 0.95);
+            border: 4px solid #00ffff;
+            padding: 18px 35px;
+            font-size: 1.8rem;
+            border-radius: 12px;
+            box-shadow: 0 0 30px #00ffff;
+        }
+
+        .timer { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
+        .round-name { color: #ffff00; text-shadow: 0 0 20px #ffff00; }
+
+        .leaderboard {
+            position: absolute;
+            right: 20px;
+            top: 110px;
+            width: 380px;
+            background: rgba(0, 0, 0, 0.98);
+            border: 5px solid #ffff00;
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 0 50px #ffff00;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+
+        .leaderboard h2 {
+            font-size: 1.4rem;
+            color: #ffff00;
+            text-shadow: 0 0 20px #ffff00;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .player-score {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 12px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #00ff00;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .player-score:hover {
+            transform: translateX(-8px);
+            box-shadow: 0 0 20px #00ff00;
+        }
+
+        .score-rank {
+            font-size: 1.4rem;
+            color: #ff00ff;
+            min-width: 65px;
+        }
+
+        .score-name {
+            flex: 1;
+            font-size: 1rem;
+            color: #00ffff;
+        }
+
+        .score-points {
+            font-size: 1.5rem;
+            color: #ffff00;
+            text-shadow: 0 0 12px #ffff00;
+        }
+
+        .player-score.top1 { border-color: #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.5); }
+        .player-score.top2 { border-color: #c0c0c0; }
+        .player-score.top3 { border-color: #cd7f32; }
+
+        .game-area {
+            position: absolute;
+            top: 110px;
+            left: 20px;
+            right: 420px;
+            bottom: 20px;
+            border: 5px solid #00ff00;
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: inset 0 0 30px rgba(0, 255, 0, 0.2);
+        }
+
+        .round-transition {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            animation: transitionFade 0.5s ease-out;
+        }
+
+        @keyframes transitionFade {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .round-icon {
+            font-size: 7rem;
+            margin-bottom: 25px;
+            animation: iconBounce 1s ease-in-out infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .round-title {
+            font-size: 3.2rem;
+            color: #ff00ff;
+            text-shadow: 0 0 35px #ff00ff;
+            margin-bottom: 18px;
+        }
+
+        .round-desc {
+            font-size: 1.4rem;
+            color: #00ff00;
+            margin-top: 15px;
+        }
+
+        /* Falling items */
+        .falling-item {
+            position: absolute;
+            font-size: 3.5rem;
+            animation: itemWobble 0.6s ease-in-out infinite;
+            filter: drop-shadow(0 0 18px currentColor);
+            pointer-events: none;
+        }
+
+        @keyframes itemWobble {
+            0%, 100% { transform: rotate(-12deg); }
+            50% { transform: rotate(12deg); }
+        }
+
+        /* Caught popup */
+        .catch-popup {
+            position: absolute;
+            font-size: 2.2rem;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 300;
+            animation: popFloat 1.2s ease-out forwards;
+        }
+
+        @keyframes popFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-120px) scale(1.8); }
+        }
+
+        /* End Screen */
+        .end-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .podium-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 35px;
+            margin: 60px 0;
+        }
+
+        .podium {
+            text-align: center;
+            animation: podiumRise 1s ease-out;
+        }
+
+        @keyframes podiumRise {
+            from { transform: translateY(150px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .podium.first { order: 2; animation-delay: 0.6s; }
+        .podium.second { order: 1; animation-delay: 0.3s; }
+        .podium.third { order: 3; animation-delay: 0s; }
+
+        .podium-emoji { font-size: 6rem; margin-bottom: 18px; }
+        .podium-name { font-size: 1.6rem; color: #ffff00; margin: 12px 0; }
+        .podium-score { font-size: 2.2rem; color: #00ff00; text-shadow: 0 0 22px #00ff00; }
+
+        .podium-stand {
+            background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05));
+            border: 5px solid;
+            border-radius: 18px 18px 0 0;
+            padding: 28px;
+            margin-top: 25px;
+        }
+
+        .podium.first .podium-stand {
+            height: 240px;
+            border-color: #ffd700;
+            box-shadow: 0 0 45px rgba(255, 215, 0, 0.7);
+        }
+
+        .podium.second .podium-stand {
+            height: 185px;
+            border-color: #c0c0c0;
+        }
+
+        .podium.third .podium-stand {
+            height: 130px;
+            border-color: #cd7f32;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            z-index: 10000;
+        }
+
+        .connection-status.disconnected {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="connection-status" id="connection-status">🟢 CONNECTED</div>
+
+    <!-- Firebase Config Screen -->
+    <div id="config-screen" class="screen active">
+        <div class="config-container">
+            <div class="config-panel">
+                <div class="config-title">🔧 FIREBASE SETUP 🔧</div>
+                
+                <div class="config-instructions">
+                    📋 FOLLOW THESE STEPS:<br><br>
+                    1️⃣ Go to: <strong style="color: #ffff00;">https://console.firebase.google.com</strong><br>
+                    2️⃣ Click "Add Project" or use existing project<br>
+                    3️⃣ Click "Realtime Database" → "Create Database"<br>
+                    4️⃣ Choose "Start in test mode" → Enable<br>
+                    5️⃣ Go to Project Settings (⚙️) → Your apps → Web app<br>
+                    6️⃣ Copy the config values and paste below:<br><br>
+                    
+                    <strong style="color: #ff00ff;">PASTE YOUR FIREBASE CONFIG:</strong>
+                </div>
+
+                <textarea 
+                    id="firebase-config" 
+                    class="config-input" 
+                    placeholder='Paste entire firebaseConfig object here, e.g.:
+{
+  apiKey: "AIza...",
+  authDomain: "...",
+  databaseURL: "https://...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+}'
+                    rows="10"
+                ></textarea>
+
+                <button class="btn" onclick="initializeFirebase()">✅ INITIALIZE FIREBASE</button>
+
+                <div class="config-instructions" style="margin-top: 30px; font-size: 0.7rem; color: #00ffff;">
+                    💡 TIP: This is one-time setup. Your config will be saved!<br>
+                    🔒 Safe: Firebase is free and secure for this use case.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen">
+        <div class="setup-container">
+            <div class="setup-panel">
+                <h1>🎄 CHRISTMAS CATCH CLASH 🎄</h1>
+                
+                <div class="game-code-box">
+                    <div class="code-label">⚡ GAME CODE ⚡</div>
+                    <div class="code-value" id="game-code-display">XMAS</div>
+                </div>
+
+                <div class="player-url">
+                    Players join at: <strong id="player-url">player.html</strong>
+                </div>
+
+                <div class="instructions">
+                    📱 HOW TO PLAY:<br>
+                    1️⃣ Players open player.html on their phones<br>
+                    2️⃣ Enter name + code shown above<br>
+                    3️⃣ Items appear on EVERYONE'S phone at once<br>
+                    4️⃣ First player to tap gets the points!<br>
+                    5️⃣ This screen shows live leaderboard
+                </div>
+
+                <div class="player-waiting">
+                    <div style="color: #00ff00; margin-bottom: 18px; font-size: 1.1rem;">PLAYERS JOINED: <span id="player-count">0</span></div>
+                    <div id="player-list"></div>
+                </div>
+
+                <button class="btn" onclick="startGame()" id="start-btn">▶ START GAME ◀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div class="hud-item timer" id="timer">1:30</div>
+            <div class="hud-item round-name" id="round-display">ROUND 1</div>
+        </div>
+
+        <div class="game-area" id="game-area"></div>
+
+        <div class="leaderboard">
+            <h2>🏆 LIVE SCORES 🏆</h2>
+            <div id="leaderboard-content"></div>
+        </div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="screen">
+        <div class="end-container">
+            <div class="setup-panel">
+                <h1>🎉 GAME OVER! 🎉</h1>
+                
+                <div style="font-size: 2rem; color: #ffff00; margin: 35px 0; text-shadow: 0 0 25px #ffff00;">
+                    🎄 MERRY CHRISTMAS! 🎄
+                </div>
+
+                <div class="podium-container" id="podium"></div>
+
+                <button class="btn" onclick="location.reload()">↻ PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // FIREBASE & GAME STATE
+        let database = null;
+        let gameRef = null;
+        let gameCode = 'XMAS' + Math.random().toString(36).substr(2, 4).toUpperCase();
+        
+        const ROUND_DURATION = 90;
+        let gameState = {
+            players: {},
+            isRunning: false,
+            currentRound: 0,
+            timeLeft: ROUND_DURATION,
+            itemId: 0,
+            activeItems: {},
+            gameOver: false
+        };
+
+        const ROUNDS = [
+            { name: 'CATCH RUSH', icon: '🎁', type: 'catch' },
+            { name: 'MEMORY MATCH', icon: '🧠', type: 'memory' },
+            { name: 'SPEED TAP', icon: '⚡', type: 'speed' },
+            { name: 'BOSS BATTLE', icon: '👿', type: 'boss' }
+        ];
+
+        const CATCH_ITEMS = [
+            { emoji: '🎁', points: 10 },
+            { emoji: '🍬', points: 5 },
+            { emoji: '⭐', points: 15 },
+            { emoji: '🎄', points: 8 },
+            { emoji: '❄️', points: 7 },
+            { emoji: '⚫', points: -10 },
+            { emoji: '💀', points: -15 }
+        ];
+
+        let spawnInterval = null;
+        let timerInterval = null;
+
+        // Check if Firebase config exists
+        function checkFirebaseConfig() {
+            const saved = localStorage.getItem('firebaseConfig');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    initFirebase(config);
+                    return true;
+                } catch (e) {
+                    console.error('Invalid saved config:', e);
+                }
+            }
+            return false;
+        }
+
+        function initializeFirebase() {
+            const configText = document.getElementById('firebase-config').value.trim();
+            if (!configText) {
+                alert('Please paste your Firebase config!');
+                return;
+            }
+
+            try {
+                // Parse the config (handle both JSON and JS object format)
+                let config;
+                if (configText.startsWith('{')) {
+                    // Try as JSON first
+                    try {
+                        config = JSON.parse(configText);
+                    } catch {
+                        // If JSON fails, try eval (for JS object format)
+                        config = eval('(' + configText + ')');
+                    }
+                } else {
+                    config = eval('(' + configText + ')');
+                }
+
+                // Validate required fields
+                if (!config.apiKey || !config.databaseURL) {
+                    throw new Error('Missing required fields (apiKey or databaseURL)');
+                }
+
+                // Save config
+                localStorage.setItem('firebaseConfig', JSON.stringify(config));
+
+                // Initialize
+                initFirebase(config);
+            } catch (e) {
+                alert('Error parsing config: ' + e.message + '\n\nMake sure you copied the entire firebaseConfig object!');
+                console.error('Config error:', e);
+            }
+        }
+
+        function initFirebase(config) {
+            try {
+                firebase.initializeApp(config);
+                database = firebase.database();
+                
+                document.getElementById('config-screen').classList.remove('active');
+                document.getElementById('setup-screen').classList.add('active');
+                
+                setupGame();
+                updateConnectionStatus();
+            } catch (e) {
+                alert('Firebase initialization failed: ' + e.message);
+                console.error('Firebase error:', e);
+                localStorage.removeItem('firebaseConfig');
+            }
+        }
+
+        function updateConnectionStatus() {
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snap) => {
+                const status = document.getElementById('connection-status');
+                if (snap.val() === true) {
+                    status.textContent = '🟢 CONNECTED';
+                    status.classList.remove('disconnected');
+                } else {
+                    status.textContent = '🔴 DISCONNECTED';
+                    status.classList.add('disconnected');
+                }
+            });
+        }
+
+        function setupGame() {
+            document.getElementById('game-code-display').textContent = gameCode;
+            
+            if (window.location.href.includes('http')) {
+                const url = window.location.href.replace('host.html', 'player.html');
+                document.getElementById('player-url').textContent = url;
+            }
+
+            // Create game session in Firebase
+            gameRef = database.ref('games/' + gameCode);
+            
+            // Initialize game state
+            gameRef.set({
+                gameCode: gameCode,
+                players: {},
+                isRunning: false,
+                currentRound: 0,
+                roundData: ROUNDS[0],
+                activeItems: {},
+                timestamp: Date.now()
+            });
+
+            // Listen for players joining
+            gameRef.child('players').on('value', (snapshot) => {
+                const players = snapshot.val() || {};
+                gameState.players = players;
+                updatePlayerList();
+                updateLeaderboard();
+            });
+
+            // Listen for caught items
+            gameRef.child('caughtItems').on('child_added', (snapshot) => {
+                const caught = snapshot.val();
+                handleCatch(caught);
+                // Remove processed item
+                snapshot.ref.remove();
+            });
+        }
+
+        function updatePlayerList() {
+            const list = document.getElementById('player-list');
+            const players = Object.values(gameState.players);
+            
+            document.getElementById('player-count').textContent = players.length;
+            
+            if (players.length === 0) {
+                list.innerHTML = '<div class="player-chip">Waiting for players...</div>';
+            } else {
+                list.innerHTML = players
+                    .map(p => `<div class="player-chip">👤 ${p.name}</div>`)
+                    .join('');
+            }
+        }
+
+        function handleCatch(caught) {
+            if (!gameState.activeItems[caught.itemId]) return;
+
+            const itemData = gameState.activeItems[caught.itemId];
+            const player = gameState.players[caught.playerId];
+            
+            if (player) {
+                player.score = (player.score || 0) + itemData.points;
+                
+                // Update player score in Firebase
+                gameRef.child('players/' + caught.playerId + '/score').set(player.score);
+                
+                // Show popup
+                const popup = document.createElement('div');
+                popup.className = 'catch-popup';
+                popup.textContent = `${player.name} ${itemData.points > 0 ? '+' : ''}${itemData.points}`;
+                popup.style.left = itemData.x + '%';
+                popup.style.top = itemData.y + 'px';
+                popup.style.color = itemData.points > 0 ? '#00ff00' : '#ff0000';
+                popup.style.textShadow = `0 0 20px ${itemData.points > 0 ? '#00ff00' : '#ff0000'}`;
+                document.getElementById('game-area').appendChild(popup);
+                setTimeout(() => popup.remove(), 1200);
+
+                // Remove item
+                const itemEl = document.querySelector(`[data-item-id="${caught.itemId}"]`);
+                if (itemEl) itemEl.remove();
+                delete gameState.activeItems[caught.itemId];
+                
+                updateLeaderboard();
+            }
+        }
+
+        function updateLeaderboard() {
+            const sorted = Object.values(gameState.players).sort((a, b) => (b.score || 0) - (a.score || 0));
+            document.getElementById('leaderboard-content').innerHTML = sorted
+                .map((p, i) => `
+                    <div class="player-score ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}">
+                        <span class="score-rank">#${i + 1}</span>
+                        <span class="score-name">${p.name}</span>
+                        <span class="score-points">${p.score || 0}</span>
+                    </div>
+                `).join('');
+        }
+
+        function startGame() {
+            if (Object.keys(gameState.players).length === 0) {
+                alert('Wait for at least one player to join!');
+                return;
+            }
+
+            gameState.isRunning = true;
+            gameState.currentRound = 0;
+            
+            gameRef.update({
+                isRunning: true,
+                currentRound: 0,
+                timeLeft: ROUND_DURATION
+            });
+
+            document.getElementById('setup-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+
+            startRound(0);
+        }
+
+        function startRound(roundIndex) {
+            gameState.currentRound = roundIndex;
+            gameState.timeLeft = ROUND_DURATION;
+            
+            const round = ROUNDS[roundIndex];
+            document.getElementById('round-display').textContent = 
+                `ROUND ${roundIndex + 1}: ${round.name}`;
+
+            // Show transition
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = `
+                <div class="round-transition">
+                    <div class="round-icon">${round.icon}</div>
+                    <div class="round-title">${round.name}</div>
+                    <div class="round-desc">Get ready...</div>
+                </div>
+            `;
+
+            gameRef.update({
+                currentRound: roundIndex,
+                roundData: round,
+                timeLeft: ROUND_DURATION
+            });
+
+            setTimeout(() => {
+                gameArea.innerHTML = '';
+                startTimer();
+                
+                if (round.type === 'catch') {
+                    startCatchGame();
+                } else if (round.type === 'speed') {
+                    startSpeedGame();
+                }
+            }, 3000);
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                const mins = Math.floor(gameState.timeLeft / 60);
+                const secs = gameState.timeLeft % 60;
+                document.getElementById('timer').textContent = 
+                    `${mins}:${secs.toString().padStart(2, '0')}`;
+
+                gameRef.update({ timeLeft: gameState.timeLeft });
+
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(spawnInterval);
+                    nextRound();
+                }
+            }, 1000);
+        }
+
+        function startCatchGame() {
+            spawnCatchItem();
+            spawnInterval = setInterval(() => spawnCatchItem(), 900);
+        }
+
+        function spawnCatchItem() {
+            const item = CATCH_ITEMS[Math.floor(Math.random() * CATCH_ITEMS.length)];
+            const itemId = ++gameState.itemId;
+            
+            const itemData = {
+                id: itemId,
+                emoji: item.emoji,
+                points: item.points,
+                x: Math.random() * 85 + 5,
+                y: -50
+            };
+
+            gameState.activeItems[itemId] = itemData;
+
+            const itemEl = document.createElement('div');
+            itemEl.className = 'falling-item';
+            itemEl.textContent = item.emoji;
+            itemEl.style.left = itemData.x + '%';
+            itemEl.style.top = itemData.y + 'px';
+            itemEl.style.color = item.points > 0 ? '#ffff00' : '#ff0000';
+            itemEl.dataset.itemId = itemId;
+            document.getElementById('game-area').appendChild(itemEl);
+
+            // Animate fall
+            let pos = -50;
+            const fallSpeed = 2.5 + Math.random() * 1.5;
+            const fallInterval = setInterval(() => {
+                pos += fallSpeed;
+                itemEl.style.top = pos + 'px';
+                itemData.y = pos;
+
+                if (pos > window.innerHeight - 150) {
+                    clearInterval(fallInterval);
+                    delete gameState.activeItems[itemId];
+                    itemEl.remove();
+                }
+            }, 20);
+
+            // Update Firebase with active items
+            gameRef.child('activeItems').update({ [itemId]: itemData });
+            
+            // Auto-remove from Firebase after timeout
+            setTimeout(() => {
+                gameRef.child('activeItems/' + itemId).remove();
+            }, 5000);
+        }
+
+        function startSpeedGame() {
+            spawnSpeedTarget();
+            spawnInterval = setInterval(() => spawnSpeedTarget(), 700);
+        }
+
+        function spawnSpeedTarget() {
+            const itemId = ++gameState.itemId;
+            
+            const itemData = {
+                id: itemId,
+                emoji: '🎯',
+                points: 20,
+                x: Math.random() * 80 + 10,
+                y: Math.random() * 60 + 20
+            };
+
+            gameState.activeItems[itemId] = itemData;
+            gameRef.child('activeItems').update({ [itemId]: itemData });
+
+            setTimeout(() => {
+                delete gameState.activeItems[itemId];
+                gameRef.child('activeItems/' + itemId).remove();
+            }, 1200);
+        }
+
+        function nextRound() {
+            document.getElementById('game-area').innerHTML = '';
+            gameState.activeItems = {};
+            gameRef.child('activeItems').set({});
+
+            if (gameState.currentRound < ROUNDS.length - 1) {
+                setTimeout(() => startRound(gameState.currentRound + 1), 2000);
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameState.isRunning = false;
+            gameState.gameOver = true;
+            
+            gameRef.update({
+                isRunning: false,
+                gameOver: true
+            });
+
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('end-screen').classList.add('active');
+
+            const sorted = Object.values(gameState.players).sort((a, b) => (b.score || 0) - (a.score || 0));
+            const podium = document.getElementById('podium');
+            const emojis = ['🥇', '🥈', '🥉'];
+            const classes = ['first', 'second', 'third'];
+
+            podium.innerHTML = sorted.slice(0, 3).map((p, i) => `
+                <div class="podium ${classes[i]}">
+                    <div class="podium-emoji">${emojis[i]}</div>
+                    <div class="podium-name">${p.name}</div>
+                    <div class="podium-score">${p.score || 0} pts</div>
+                    <div class="podium-stand"></div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        window.onload = () => {
+            if (!checkFirebaseConfig()) {
+                console.log('No Firebase config found, showing setup screen');
+            }
+        };
+    </script>
+</body>
+</html>

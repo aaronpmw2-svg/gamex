@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="0; url=host.html">
+    <title>Christmas Catch Clash - Loading...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0033 0%, #1a0033 100%);
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .container {
+            max-width: 600px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            color: #ff00ff;
+            text-shadow: 0 0 30px #ff00ff;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 30px #ff00ff; }
+            50% { text-shadow: 0 0 60px #ff00ff, 0 0 90px #ff00ff; }
+        }
+        
+        .message {
+            font-size: 1rem;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+            line-height: 2;
+            margin: 30px 0;
+        }
+        
+        .links {
+            margin-top: 40px;
+        }
+        
+        a {
+            display: inline-block;
+            background: linear-gradient(180deg, #ff0080, #cc0066);
+            border: 4px solid #ff00ff;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 10px;
+            box-shadow: 0 0 30px #ff00ff;
+            margin: 10px;
+            transition: all 0.2s;
+        }
+        
+        a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px #ff00ff;
+        }
+        
+        .spinner {
+            font-size: 3rem;
+            margin: 20px 0;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner">🎄</div>
+        <h1>🎄 CHRISTMAS CATCH CLASH 🎄</h1>
+        <div class="message">
+            Redirecting to host screen...<br>
+            If not redirected automatically:
+        </div>
+        <div class="links">
+            <a href="host.html">Open Host Screen</a>
+            <a href="player.html">Open Player Screen</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎮 Christmas Catch - Player</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0033 0%, #1a0033 100%);
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Join Screen */
+        .join-card {
+            background: rgba(0, 0, 0, 0.95);
+            border: 5px solid #00ffff;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px #00ffff;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: #ff00ff;
+            text-shadow: 0 0 20px #ff00ff;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #ffff00;
+            padding: 16px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            color: #fff;
+            border-radius: 10px;
+            text-align: center;
+            margin: 12px 0;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(180deg, #ff0080, #cc0066);
+            border: 4px solid #ff00ff;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            padding: 18px;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 0 30px #ff00ff;
+            margin-top: 18px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 50px #ff00ff;
+        }
+
+        .info-text {
+            font-size: 0.7rem;
+            color: #00ffff;
+            margin-top: 25px;
+            line-height: 1.8;
+        }
+
+        /* Game Screen */
+        #game-screen {
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .game-header {
+            width: 100%;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #00ffff;
+        }
+
+        .player-name {
+            font-size: 0.75rem;
+            color: #00ffff;
+        }
+
+        .score-display {
+            font-size: 1.8rem;
+            color: #ffff00;
+            text-shadow: 0 0 18px #ffff00;
+        }
+
+        .round-banner {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 0, 255, 0.2);
+            border-bottom: 3px solid #ff00ff;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #ff00ff;
+        }
+
+        .game-area {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Falling Items */
+        .falling-item {
+            position: absolute;
+            font-size: 4rem;
+            cursor: pointer;
+            z-index: 100;
+            animation: itemWobble 0.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px currentColor);
+            transition: transform 0.1s;
+        }
+
+        @keyframes itemWobble {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        .falling-item:active {
+            transform: scale(1.4) !important;
+        }
+
+        /* Speed Targets */
+        .speed-target {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            font-size: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            animation: targetPulse 0.6s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px #ff00ff);
+        }
+
+        @keyframes targetPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .speed-target:active {
+            transform: scale(1.5) !important;
+        }
+
+        /* Memory Cards */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 25px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background: rgba(0, 255, 255, 0.2);
+            border: 3px solid #00ffff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .memory-card:active {
+            transform: scale(1.1);
+        }
+
+        .memory-card.flipped {
+            background: rgba(255, 0, 255, 0.4);
+            border-color: #ff00ff;
+        }
+
+        .memory-card.matched {
+            background: rgba(0, 255, 0, 0.4);
+            border-color: #00ff00;
+            pointer-events: none;
+        }
+
+        /* Boss Battle */
+        .boss-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .boss-sprite {
+            font-size: 10rem;
+            margin-bottom: 30px;
+            cursor: pointer;
+            animation: bossFloat 2s ease-in-out infinite;
+            user-select: none;
+        }
+
+        @keyframes bossFloat {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-25px) rotate(5deg); }
+        }
+
+        .boss-sprite:active {
+            transform: scale(1.2) !important;
+        }
+
+        .boss-health {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid #ff0000;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6600);
+            transition: width 0.3s;
+        }
+
+        .health-text {
+            color: #ffff00;
+            margin-top: 12px;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .boss-instruction {
+            font-size: 1rem;
+            color: #00ff00;
+            text-align: center;
+            margin-top: 25px;
+            line-height: 1.8;
+        }
+
+        /* Feedback */
+        .tap-feedback {
+            position: absolute;
+            font-size: 3rem;
+            pointer-events: none;
+            z-index: 200;
+            animation: feedbackPop 0.8s ease-out forwards;
+        }
+
+        @keyframes feedbackPop {
+            0% { opacity: 1; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0; transform: scale(1) translateY(-60px); }
+        }
+
+        /* Waiting/End States */
+        .status-card {
+            background: rgba(0, 0, 0, 0.95);
+            border: 4px solid #00ffff;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 40px #00ffff;
+            max-width: 420px;
+            width: 90%;
+        }
+
+        .status-message {
+            font-size: 0.9rem;
+            color: #00ff00;
+            line-height: 2.2;
+            margin: 25px 0;
+        }
+
+        .waiting-message {
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .final-rank {
+            font-size: 2.5rem;
+            margin: 30px 0;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            color: #ffff00;
+            text-shadow: 0 0 25px #ffff00;
+            margin: 25px 0;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff00;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            z-index: 10000;
+        }
+
+        .connection-status.disconnected {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.3rem; }
+            .falling-item { font-size: 3rem; }
+            .speed-target { width: 75px; height: 75px; font-size: 3rem; }
+            .memory-card { font-size: 2.2rem; }
+            .boss-sprite { font-size: 8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connection-status">🟢 OK</div>
+
+    <!-- Join Screen -->
+    <div id="join-screen" class="screen active">
+        <div class="join-card">
+            <h1>🎄 CHRISTMAS CATCH CLASH 🎄</h1>
+            
+            <input 
+                type="text" 
+                id="player-name" 
+                placeholder="YOUR NAME"
+                maxlength="15"
+            >
+
+            <input 
+                type="text" 
+                id="game-code" 
+                placeholder="GAME CODE"
+                maxlength="10"
+            >
+
+            <button class="btn" onclick="joinGame()">JOIN GAME</button>
+
+            <div class="info-text">
+                ⚡ Tap falling items to catch them!<br>
+                🎯 Be fastest to win points!<br>
+                🏆 4 different mini-games!
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Screen -->
+    <div id="waiting-screen" class="screen">
+        <div class="status-card">
+            <h1 class="waiting-message">⏳ WAITING ⏳</h1>
+            <div class="status-message" id="waiting-message">
+                Waiting for host to start the game...
+            </div>
+            <div class="final-score" id="waiting-score">0</div>
+            <div class="info-text">
+                Get ready!
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div class="player-name" id="player-name-display"></div>
+            <div class="score-display" id="game-score">0</div>
+        </div>
+        <div class="round-banner" id="round-banner">ROUND 1</div>
+        <div class="game-area" id="game-area"></div>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="screen">
+        <div class="status-card">
+            <h1>🎉 GAME OVER! 🎉</h1>
+            <div class="final-rank" id="final-rank">🥇</div>
+            <div class="final-score" id="final-score">0 PTS</div>
+            <div class="status-message">
+                🎄 MERRY CHRISTMAS! 🎄<br>
+                Check the main screen for full rankings!
+            </div>
+            <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        // FIREBASE & PLAYER STATE
+        let database = null;
+        let gameRef = null;
+        
+        const PLAYER_ID = localStorage.getItem('playerId') || 
+            'player_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('playerId', PLAYER_ID);
+
+        let playerState = {
+            id: PLAYER_ID,
+            name: '',
+            score: 0
+        };
+
+        let activeItems = new Map();
+        let memoryFlipped = [];
+        let memoryCards = [];
+        let currentRound = -1;
+
+        // Get Firebase config from host
+        function getFirebaseConfig() {
+            const saved = localStorage.getItem('firebaseConfig');
+            if (!saved) {
+                alert('Firebase not configured! Please open the host screen first.');
+                return null;
+            }
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                alert('Invalid Firebase config!');
+                return null;
+            }
+        }
+
+        // Join game
+        function joinGame() {
+            const name = document.getElementById('player-name').value.trim();
+            const code = document.getElementById('game-code').value.trim().toUpperCase();
+
+            if (!name || name.length < 2) {
+                alert('Please enter your name!');
+                return;
+            }
+
+            if (!code || code.length < 4) {
+                alert('Please enter the game code!');
+                return;
+            }
+
+            // Initialize Firebase
+            const config = getFirebaseConfig();
+            if (!config) return;
+
+            try {
+                firebase.initializeApp(config);
+                database = firebase.database();
+                updateConnectionStatus();
+            } catch (e) {
+                // Already initialized
+                database = firebase.database();
+            }
+
+            playerState.name = name;
+            document.getElementById('player-name-display').textContent = name;
+
+            // Check if game exists
+            gameRef = database.ref('games/' + code);
+            gameRef.once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    alert('Game not found! Check the code and try again.');
+                    return;
+                }
+
+                // Join the game
+                gameRef.child('players/' + PLAYER_ID).set({
+                    id: PLAYER_ID,
+                    name: name,
+                    score: 0,
+                    joinedAt: Date.now()
+                });
+
+                document.getElementById('waiting-message').textContent = 
+                    `Welcome, ${name}! Waiting for host...`;
+
+                showScreen('waiting-screen');
+                startListening();
+            }).catch((error) => {
+                alert('Error joining game: ' + error.message);
+            });
+        }
+
+        function updateConnectionStatus() {
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snap) => {
+                const status = document.getElementById('connection-status');
+                if (snap.val() === true) {
+                    status.textContent = '🟢 OK';
+                    status.classList.remove('disconnected');
+                } else {
+                    status.textContent = '🔴 OFF';
+                    status.classList.add('disconnected');
+                }
+            });
+        }
+
+        function startListening() {
+            // Listen for game start
+            gameRef.child('isRunning').on('value', (snapshot) => {
+                const isRunning = snapshot.val();
+                if (isRunning && document.getElementById('waiting-screen').classList.contains('active')) {
+                    showScreen('game-screen');
+                }
+            });
+
+            // Listen for game over
+            gameRef.child('gameOver').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    showEndScreen();
+                }
+            });
+
+            // Listen for current round
+            gameRef.child('currentRound').on('value', (snapshot) => {
+                const round = snapshot.val();
+                if (round !== null && round !== currentRound) {
+                    currentRound = round;
+                    loadRound(round);
+                }
+            });
+
+            // Listen for round data
+            gameRef.child('roundData').on('value', (snapshot) => {
+                const roundData = snapshot.val();
+                if (roundData) {
+                    document.getElementById('round-banner').textContent = 
+                        `ROUND ${currentRound + 1}: ${roundData.name}`;
+                }
+            });
+
+            // Listen for player score updates
+            gameRef.child('players/' + PLAYER_ID + '/score').on('value', (snapshot) => {
+                const score = snapshot.val() || 0;
+                playerState.score = score;
+                updateScoreDisplay();
+            });
+
+            // Listen for active items (catch & speed rounds)
+            gameRef.child('activeItems').on('value', (snapshot) => {
+                const items = snapshot.val() || {};
+                syncItems(items);
+            });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('game-score').textContent = playerState.score;
+            document.getElementById('waiting-score').textContent = playerState.score;
+            document.getElementById('final-score').textContent = playerState.score + ' PTS';
+        }
+
+        function loadRound(roundIndex) {
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = '';
+            activeItems.clear();
+            memoryFlipped = [];
+
+            // Memory game setup
+            if (roundIndex === 1) {
+                setupMemoryGame();
+            }
+
+            // Boss game setup
+            if (roundIndex === 3) {
+                setupBossGame();
+            }
+        }
+
+        function syncItems(items) {
+            const gameArea = document.getElementById('game-area');
+            const serverItems = Object.entries(items);
+
+            // Round 0 (Catch) or Round 2 (Speed)
+            if (currentRound === 0 || currentRound === 2) {
+                // Remove items that no longer exist
+                activeItems.forEach((itemEl, itemId) => {
+                    if (!items[itemId]) {
+                        itemEl.remove();
+                        activeItems.delete(itemId);
+                    }
+                });
+
+                // Add new items
+                serverItems.forEach(([itemId, itemData]) => {
+                    if (!activeItems.has(itemId)) {
+                        addItem(itemId, itemData);
+                    }
+                });
+            }
+        }
+
+        function addItem(itemId, itemData) {
+            const gameArea = document.getElementById('game-area');
+            const itemEl = document.createElement('div');
+            
+            if (currentRound === 0) {
+                // Catch game - falling items
+                itemEl.className = 'falling-item';
+                itemEl.textContent = itemData.emoji;
+                itemEl.style.left = itemData.x + '%';
+                itemEl.style.top = itemData.y + 'px';
+                itemEl.style.color = itemData.points > 0 ? '#ffff00' : '#ff0000';
+            } else if (currentRound === 2) {
+                // Speed game - targets
+                itemEl.className = 'speed-target';
+                itemEl.textContent = itemData.emoji;
+                itemEl.style.left = itemData.x + '%';
+                itemEl.style.top = itemData.y + '%';
+            }
+
+            itemEl.addEventListener('click', () => catchItem(itemId, itemData));
+            itemEl.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                catchItem(itemId, itemData);
+            });
+
+            gameArea.appendChild(itemEl);
+            activeItems.set(itemId, itemEl);
+        }
+
+        function catchItem(itemId, itemData) {
+            const itemEl = activeItems.get(itemId);
+            if (!itemEl) return;
+
+            // Send catch to Firebase
+            gameRef.child('caughtItems').push({
+                itemId: itemId,
+                playerId: PLAYER_ID,
+                timestamp: Date.now()
+            });
+
+            // Show feedback
+            showFeedback(itemEl, '✓');
+
+            // Remove item locally
+            itemEl.remove();
+            activeItems.delete(itemId);
+        }
+
+        // Memory Game
+        function setupMemoryGame() {
+            const gameArea = document.getElementById('game-area');
+            
+            const icons = ['🎁', '⭐', '🎄', '🍬', '❄️', '🔔', '🎅', '🦌'];
+            memoryCards = [...icons, ...icons].sort(() => Math.random() - 0.5);
+
+            const gridHtml = `
+                <div class="memory-grid">
+                    ${memoryCards.map((icon, index) => `
+                        <div class="memory-card" data-card-id="${index}" data-icon="${icon}">
+                            ❓
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            gameArea.innerHTML = gridHtml;
+
+            // Add click handlers
+            document.querySelectorAll('.memory-card').forEach(card => {
+                const cardId = parseInt(card.dataset.cardId);
+                card.addEventListener('click', () => flipCard(cardId, card));
+                card.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    flipCard(cardId, card);
+                });
+            });
+        }
+
+        function flipCard(cardId, cardEl) {
+            if (memoryFlipped.length >= 2) return;
+            if (cardEl.classList.contains('matched')) return;
+            if (cardEl.classList.contains('flipped')) return;
+
+            const icon = cardEl.dataset.icon;
+            cardEl.textContent = icon;
+            cardEl.classList.add('flipped');
+            memoryFlipped.push({ id: cardId, icon: icon, el: cardEl });
+
+            if (memoryFlipped.length === 2) {
+                setTimeout(checkMemoryMatch, 800);
+            }
+        }
+
+        function checkMemoryMatch() {
+            const [first, second] = memoryFlipped;
+
+            if (first.icon === second.icon) {
+                // Match!
+                first.el.classList.add('matched');
+                second.el.classList.add('matched');
+                
+                // Award points locally and sync to Firebase
+                playerState.score += 15;
+                gameRef.child('players/' + PLAYER_ID + '/score').set(playerState.score);
+                updateScoreDisplay();
+                
+                showFeedback(first.el, '+15');
+            } else {
+                // No match
+                first.el.textContent = '❓';
+                second.el.textContent = '❓';
+                first.el.classList.remove('flipped');
+                second.el.classList.remove('flipped');
+            }
+
+            memoryFlipped = [];
+        }
+
+        // Boss Game
+        function setupBossGame() {
+            const gameArea = document.getElementById('game-area');
+            
+            gameArea.innerHTML = `
+                <div class="boss-container">
+                    <div class="boss-sprite" id="boss-sprite">😈</div>
+                    <div style="font-size: 1.8rem; color: #ff0000; text-shadow: 0 0 20px #ff0000; margin-bottom: 20px;">
+                        THE GRINCH
+                    </div>
+                    <div class="boss-health">
+                        <div class="health-bar">
+                            <div class="health-fill" id="health-fill" style="width: 100%;"></div>
+                        </div>
+                        <div class="health-text" id="health-text">100 HP</div>
+                    </div>
+                    <div class="boss-instruction">
+                        TAP TO ATTACK!<br>
+                        <span style="font-size: 0.8rem;">+10 points per hit!</span>
+                    </div>
+                </div>
+            `;
+
+            const boss = document.getElementById('boss-sprite');
+            boss.addEventListener('click', hitBoss);
+            boss.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                hitBoss();
+            });
+
+            // Listen for boss health updates (from other players)
+            gameRef.child('bossHealth').on('value', (snapshot) => {
+                const health = snapshot.val();
+                if (health !== null) {
+                    updateBossHealth(health);
+                }
+            });
+        }
+
+        function hitBoss() {
+            playerState.score += 10;
+            gameRef.child('players/' + PLAYER_ID + '/score').set(playerState.score);
+            updateScoreDisplay();
+
+            // Report hit to host
+            gameRef.child('caughtItems').push({
+                itemId: Date.now(),
+                playerId: PLAYER_ID,
+                isBossHit: true,
+                timestamp: Date.now()
+            });
+
+            const boss = document.getElementById('boss-sprite');
+            showFeedback(boss, '+10');
+            
+            // Shake effect
+            boss.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                boss.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        function updateBossHealth(health) {
+            const healthFill = document.getElementById('health-fill');
+            const healthText = document.getElementById('health-text');
+            
+            if (healthFill && healthText) {
+                const clampedHealth = Math.max(0, Math.min(100, health));
+                healthFill.style.width = clampedHealth + '%';
+                healthText.textContent = Math.round(clampedHealth) + ' HP';
+            }
+        }
+
+        function showFeedback(element, text) {
+            const feedback = document.createElement('div');
+            feedback.className = 'tap-feedback';
+            feedback.textContent = text;
+            feedback.style.left = element.offsetLeft + element.offsetWidth / 2 + 'px';
+            feedback.style.top = element.offsetTop + 'px';
+            feedback.style.color = '#00ff00';
+            feedback.style.textShadow = '0 0 20px #00ff00';
+            
+            element.parentElement.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 800);
+        }
+
+        function showEndScreen() {
+            showScreen('end-screen');
+
+            // Get final rankings
+            gameRef.child('players').once('value').then((snapshot) => {
+                const players = snapshot.val() || {};
+                const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+                const rank = sorted.findIndex(p => p.id === PLAYER_ID) + 1;
+
+                const rankEl = document.getElementById('final-rank');
+                if (rank === 1) {
+                    rankEl.textContent = '🥇 1ST PLACE!';
+                    rankEl.style.color = '#ffd700';
+                } else if (rank === 2) {
+                    rankEl.textContent = '🥈 2ND PLACE!';
+                    rankEl.style.color = '#c0c0c0';
+                } else if (rank === 3) {
+                    rankEl.textContent = '🥉 3RD PLACE!';
+                    rankEl.style.color = '#cd7f32';
+                } else {
+                    rankEl.textContent = `#${rank} PLACE`;
+                    rankEl.style.color = '#00ffff';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
