@@ -105,7 +105,18 @@
             line-height: 1.8;
         }
 
-        /* Game Screen */
+        .error-text {
+            font-size: 0.8rem;
+            color: #ff0000;
+            margin-top: 20px;
+            line-height: 1.6;
+            padding: 15px;
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+        }
+
+        /* Game Screen - keeping all the same styles from before */
         #game-screen {
             padding: 0;
             justify-content: flex-start;
@@ -150,7 +161,6 @@
             background: rgba(0, 0, 0, 0.3);
         }
 
-        /* Falling Items */
         .falling-item {
             position: absolute;
             font-size: 4rem;
@@ -170,7 +180,6 @@
             transform: scale(1.4) !important;
         }
 
-        /* Speed Targets */
         .speed-target {
             position: absolute;
             width: 90px;
@@ -193,7 +202,6 @@
             transform: scale(1.5) !important;
         }
 
-        /* Memory Cards */
         .memory-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -231,7 +239,6 @@
             pointer-events: none;
         }
 
-        /* Boss Battle */
         .boss-container {
             display: flex;
             flex-direction: column;
@@ -294,7 +301,6 @@
             line-height: 1.8;
         }
 
-        /* Feedback */
         .tap-feedback {
             position: absolute;
             font-size: 3rem;
@@ -309,7 +315,6 @@
             100% { opacity: 0; transform: scale(1) translateY(-60px); }
         }
 
-        /* Waiting/End States */
         .status-card {
             background: rgba(0, 0, 0, 0.95);
             border: 4px solid #00ffff;
@@ -376,7 +381,7 @@
     </style>
 </head>
 <body>
-    <div class="connection-status" id="connection-status">🟢 OK</div>
+    <div class="connection-status" id="connection-status">🟡 INIT</div>
 
     <!-- Join Screen -->
     <div id="join-screen" class="screen active">
@@ -405,9 +410,7 @@
                 🏆 4 different mini-games!
             </div>
             
-            <div id="loading-message" style="display: none; color: #00ff00; margin-top: 20px; font-size: 0.8rem;">
-                Connecting to game...
-            </div>
+            <div id="error-message" class="error-text" style="display: none;"></div>
         </div>
     </div>
 
@@ -450,10 +453,12 @@
     </div>
 
     <script>
-        // FIREBASE & PLAYER STATE
+        // Get database URL from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const dbUrl = urlParams.get('db');
+        
         let database = null;
         let gameRef = null;
-        let firebaseConfig = null;
         
         const PLAYER_ID = localStorage.getItem('playerId') || 
             'player_' + Math.random().toString(36).substr(2, 9);
@@ -470,122 +475,61 @@
         let memoryCards = [];
         let currentRound = -1;
 
-        // Auto-initialize on page load
+        // Initialize Firebase immediately
         window.onload = function() {
-            // Check if database URL is in URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const dbUrl = urlParams.get('db');
+            if (!dbUrl) {
+                showError('❌ Invalid player link!<br><br>Please use the link from the host screen.<br><br>It should look like:<br>...player.html?db=https://...');
+                return;
+            }
+
+            // Clean the URL (remove trailing slash and any paths)
+            let cleanUrl = dbUrl.trim();
+            if (cleanUrl.endsWith('/')) {
+                cleanUrl = cleanUrl.slice(0, -1);
+            }
             
-            if (dbUrl) {
-                // Database URL provided - fetch config and initialize
-                fetchConfigAndInit(dbUrl);
-            } else {
-                // Check localStorage for saved database URL
-                const savedDbUrl = localStorage.getItem('databaseURL');
-                if (savedDbUrl) {
-                    fetchConfigAndInit(savedDbUrl);
-                } else {
-                    // No database URL - show helpful message
-                    document.getElementById('loading-message').style.display = 'block';
-                    document.getElementById('loading-message').innerHTML = 
-                        '⚠️ Please use the player link from the host screen!<br>Or enter database URL below:';
-                    
-                    // Add database URL input
-                    const dbInput = document.createElement('input');
-                    dbInput.type = 'text';
-                    dbInput.id = 'db-url-input';
-                    dbInput.placeholder = 'Database URL (from Firebase)';
-                    dbInput.style.marginTop = '15px';
-                    
-                    const dbBtn = document.createElement('button');
-                    dbBtn.className = 'btn';
-                    dbBtn.textContent = 'CONNECT';
-                    dbBtn.onclick = function() {
-                        const url = document.getElementById('db-url-input').value.trim();
-                        if (url) {
-                            localStorage.setItem('databaseURL', url);
-                            fetchConfigAndInit(url);
-                        }
-                    };
-                    
-                    document.querySelector('.join-card').appendChild(dbInput);
-                    document.querySelector('.join-card').appendChild(dbBtn);
-                }
+            // Remove any paths after .com (Firebase URLs should end with .com or .io)
+            const match = cleanUrl.match(/(https:\/\/[^\/]+\.(?:firebaseio\.com|googleapis\.com))/);
+            if (match) {
+                cleanUrl = match[1];
+            }
+
+            console.log('Connecting to:', cleanUrl);
+            document.getElementById('connection-status').textContent = '🟡 CONNECTING';
+
+            try {
+                const config = {
+                    databaseURL: cleanUrl
+                };
+                
+                firebase.initializeApp(config);
+                database = firebase.database();
+                
+                // Test connection
+                database.ref('.info/connected').on('value', (snap) => {
+                    const status = document.getElementById('connection-status');
+                    if (snap.val() === true) {
+                        status.textContent = '🟢 OK';
+                        status.classList.remove('disconnected');
+                    } else {
+                        status.textContent = '🔴 OFF';
+                        status.classList.add('disconnected');
+                    }
+                });
+
+                console.log('Firebase initialized successfully');
+            } catch (e) {
+                console.error('Firebase error:', e);
+                showError('Connection failed!<br><br>' + e.message + '<br><br>Please ask the host for a new link.');
             }
         };
 
-        function fetchConfigAndInit(databaseURL) {
-            document.getElementById('loading-message').style.display = 'block';
-            document.getElementById('loading-message').textContent = 'Connecting to game...';
-            
-            // Initialize Firebase with minimal config just to fetch the full config
-            const tempConfig = {
-                databaseURL: databaseURL
-            };
-            
-            try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(tempConfig);
-                }
-                database = firebase.database();
-                
-                // Fetch the full config from the database
-                database.ref('_config').once('value').then((snapshot) => {
-                    const config = snapshot.val();
-                    
-                    if (!config) {
-                        alert('Game not configured yet! Please make sure the host has set up the game first.');
-                        document.getElementById('loading-message').style.display = 'none';
-                        return;
-                    }
-                    
-                    firebaseConfig = config;
-                    
-                    // Reinitialize with full config if needed
-                    if (firebase.apps.length) {
-                        firebase.app().delete().then(() => {
-                            firebase.initializeApp(config);
-                            database = firebase.database();
-                            finishInit();
-                        });
-                    } else {
-                        firebase.initializeApp(config);
-                        database = firebase.database();
-                        finishInit();
-                    }
-                }).catch((error) => {
-                    alert('Error connecting to game: ' + error.message);
-                    document.getElementById('loading-message').style.display = 'none';
-                });
-            } catch (e) {
-                alert('Connection error: ' + e.message);
-                document.getElementById('loading-message').style.display = 'none';
-            }
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.innerHTML = message;
+            errorEl.style.display = 'block';
         }
 
-        function finishInit() {
-            document.getElementById('loading-message').textContent = '✅ Connected! Enter your name to join.';
-            setTimeout(() => {
-                document.getElementById('loading-message').style.display = 'none';
-            }, 2000);
-            updateConnectionStatus();
-        }
-
-        function updateConnectionStatus() {
-            const connectedRef = database.ref('.info/connected');
-            connectedRef.on('value', (snap) => {
-                const status = document.getElementById('connection-status');
-                if (snap.val() === true) {
-                    status.textContent = '🟢 OK';
-                    status.classList.remove('disconnected');
-                } else {
-                    status.textContent = '🔴 OFF';
-                    status.classList.add('disconnected');
-                }
-            });
-        }
-
-        // Join game
         function joinGame() {
             const name = document.getElementById('player-name').value.trim();
             const code = document.getElementById('game-code').value.trim().toUpperCase();
@@ -601,7 +545,7 @@
             }
 
             if (!database) {
-                alert('Not connected! Please refresh the page and try again.');
+                showError('Not connected! Please refresh and try again.');
                 return;
             }
 
@@ -630,8 +574,19 @@
                 showScreen('waiting-screen');
                 startListening();
             }).catch((error) => {
-                alert('Error joining game: ' + error.message);
+                showError('Error joining: ' + error.message);
             });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('game-score').textContent = playerState.score;
+            document.getElementById('waiting-score').textContent = playerState.score;
+            document.getElementById('final-score').textContent = playerState.score + ' PTS';
         }
 
         function startListening() {
@@ -680,17 +635,6 @@
                 const items = snapshot.val() || {};
                 syncItems(items);
             });
-        }
-
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-        }
-
-        function updateScoreDisplay() {
-            document.getElementById('game-score').textContent = playerState.score;
-            document.getElementById('waiting-score').textContent = playerState.score;
-            document.getElementById('final-score').textContent = playerState.score + ' PTS';
         }
 
         function loadRound(roundIndex) {
