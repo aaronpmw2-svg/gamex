@@ -668,10 +668,17 @@
                     }
                 });
 
-                // Add new items
+                // Add new items or update existing ones
                 serverItems.forEach(([itemId, itemData]) => {
                     if (!activeItems.has(itemId)) {
                         addItem(itemId, itemData);
+                    } else {
+                        // Update position of existing items (for falling animation)
+                        const itemEl = activeItems.get(itemId);
+                        if (currentRound === 0 && itemEl) {
+                            // Update Y position for falling items
+                            itemEl.style.top = itemData.y + 'px';
+                        }
                     }
                 });
             }
