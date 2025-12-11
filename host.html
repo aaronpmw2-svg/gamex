@@ -557,8 +557,8 @@
             <div class="setup-panel">
                 <h1>🎉 GAME OVER! 🎉</h1>
                 
-                <div style="font-size: 2rem; color: #ffff00; margin: 35px 0; text-shadow: 0 0 25px #ffff00;">
-                    🎄 MERRY CHRISTMAS! 🎄
+                <div style="font-size: 1.5rem; color: #ffff00; margin: 35px 0; text-shadow: 0 0 25px #ffff00; line-height: 1.6;">
+                    🎄 WISHING THE BEST TEAM EVER<br>A FAB CHRISTMAS AND BRILLIANT '26! 🎄
                 </div>
 
                 <div class="podium-container" id="podium"></div>
@@ -586,9 +586,9 @@
         };
 
         const ROUNDS = [
-            { name: 'CATCH RUSH', icon: '🎁', type: 'catch', duration: 90 },
-            { name: 'MEMORY MATCH', icon: '🧠', type: 'memory', duration: 90 },
-            { name: 'SPEED TAP', icon: '⚡', type: 'speed', duration: 90 },
+            { name: 'CATCH ME IF YOU CAN', icon: '🎁', type: 'catch', duration: 90 },
+            { name: 'MEMORY MATCH', icon: '🎁', type: 'memory', duration: 90 },
+            { name: 'TAP ME OUTTA HERE', icon: '⚡', type: 'speed', duration: 90 },
             { name: "CARA'S DELI COUNTER", icon: '🎟️', type: 'deli', duration: 15 }
         ];
 
@@ -885,11 +885,11 @@
             
             let instructionText = '';
             if (round.type === 'catch') {
-                instructionText = 'TAP FALLING ELVES!<br>First tap wins points!<br>Avoid bad items!';
+                instructionText = 'TAP THE FALLING ELVES!<br>First tap wins points!<br>Avoid bad items!';
             } else if (round.type === 'memory') {
-                instructionText = 'FIND MATCHING PAIRS!<br>+15 points per match<br>This is YOUR OWN game!';
+                instructionText = 'FIND MATCHING PAIRS!<br>+15 points per match!';
             } else if (round.type === 'speed') {
-                instructionText = 'TAP TARGETS FAST!<br>First tap wins +20 points<br>Ready your fingers!';
+                instructionText = 'TAP TARGETS FAST!<br>First to tap wins +20 points!<br>Ready your fingers!';
             } else if (round.type === 'deli') {
                 instructionText = 'HIT CARA AS MANY TIMES AS YOU CAN<br>TO GET THE FIRST TICKET IN THE QUEUE!<br>Most taps wins!';
             }
@@ -931,6 +931,7 @@
                         startCatchGame();
                     } else if (round.type === 'speed') {
                         startSpeedGame();
+                        startSpeedGameHost(); // Show message on host screen
                     } else if (round.type === 'deli') {
                         startDeliGame();
                     }
@@ -988,6 +989,14 @@
             img.style.borderRadius = '50%';
             img.style.border = item.good ? '4px solid #00ff00' : '4px solid #ff0000';
             img.style.boxShadow = item.good ? '0 0 20px #00ff00' : '0 0 20px #ff0000';
+            
+            // Handle image loading errors
+            img.onerror = function() {
+                console.error('Failed to load image:', itemData.image);
+                itemEl.textContent = item.good ? '✅' : '❌';
+                itemEl.style.fontSize = '4rem';
+            };
+            
             itemEl.appendChild(img);
             
             itemEl.style.left = itemData.x + '%';
@@ -1056,6 +1065,30 @@
             // Points are awarded on each tap (handled in player catching)
         }
 
+        function startSpeedGameHost() {
+            // Speed game - show message on host screen
+            const gameArea = document.getElementById('game-area');
+            
+            gameArea.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
+                    <div style="font-size: 5rem; margin-bottom: 30px; animation: pulse 1s ease-in-out infinite;">⚡</div>
+                    <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff; margin-bottom: 20px;">
+                        TAP ME OUTTA HERE
+                    </div>
+                    <div style="font-size: 1.3rem; color: #00ff00; line-height: 1.8; max-width: 600px;">
+                        Players are tapping targets on their phones!<br>
+                        <span style="font-size: 1rem; color: #ffff00;">First tap wins +20 points!</span>
+                    </div>
+                </div>
+                <style>
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(1.2); opacity: 0.8; }
+                    }
+                </style>
+            `;
+        }
+
         function spawnSpeedTarget() {
             const itemId = ++gameState.itemId;
             
@@ -1105,7 +1138,7 @@
             const medals = ['🥇', '🥈', '🥉'];
             const classes = ['first', 'second', 'third'];
             
-            // Map player names to elf photos
+            // Map player names to elf photos (case-insensitive)
             const photoMap = {
                 'aaron': 'Aaron.jpg',
                 'cara': 'Cara.jpg',
@@ -1113,12 +1146,14 @@
                 'kelly': 'Kelly.jpg',
                 'philippa': 'Philippa.jpg',
                 'mi-cool': 'Mi-cool.jpg',
-                'micool': 'Mi-cool.jpg'
+                'micool': 'Mi-cool.jpg',
+                'mi cool': 'Mi-cool.jpg'
             };
 
             podium.innerHTML = sorted.slice(0, 3).map((p, i) => {
-                const playerKey = p.name.toLowerCase().replace(/\s+/g, '-');
-                const photoUrl = photoMap[playerKey] || null;
+                // Normalize player name for matching
+                const playerKey = p.name.toLowerCase().trim().replace(/\s+/g, '-');
+                const photoUrl = photoMap[playerKey] || photoMap[p.name.toLowerCase().trim()] || null;
                 
                 return `
                 <div class="podium ${classes[i]}" style="animation-delay: ${i * 0.3}s;">
