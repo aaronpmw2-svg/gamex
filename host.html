@@ -586,18 +586,19 @@
         };
 
         const ROUNDS = [
-            { name: 'CATCH RUSH', icon: '🎁', type: 'catch' },
-            { name: 'MEMORY MATCH', icon: '🧠', type: 'memory' },
-            { name: 'SPEED TAP', icon: '⚡', type: 'speed' },
-            { name: 'BOSS BATTLE', icon: '👿', type: 'boss' }
+            { name: 'CATCH RUSH', icon: '🎁', type: 'catch', duration: 90 },
+            { name: 'MEMORY MATCH', icon: '🧠', type: 'memory', duration: 90 },
+            { name: 'SPEED TAP', icon: '⚡', type: 'speed', duration: 90 },
+            { name: "CARA'S DELI COUNTER", icon: '🎟️', type: 'deli', duration: 15 }
         ];
 
         const CATCH_ITEMS = [
-            { emoji: '🎁', points: 10 },
-            { emoji: '🍬', points: 5 },
-            { emoji: '⭐', points: 15 },
-            { emoji: '🎄', points: 8 },
-            { emoji: '❄️', points: 7 },
+            { image: 'Aaron.jpg', name: 'Aaron', points: 10 },
+            { image: 'Cara.jpg', name: 'Cara', points: 10 },
+            { image: 'Cricket.jpg', name: 'Cricket', points: 10 },
+            { image: 'Kelly.jpg', name: 'Kelly', points: 10 },
+            { image: 'Philippa.jpg', name: 'Philippa', points: 10 },
+            { image: 'Mi-cool.jpg', name: 'Mi-cool', points: 10 },
             { emoji: '⚫', points: -10 },
             { emoji: '💀', points: -15 }
         ];
@@ -868,38 +869,68 @@
 
         function startRound(roundIndex) {
             gameState.currentRound = roundIndex;
-            gameState.timeLeft = ROUND_DURATION;
-            
             const round = ROUNDS[roundIndex];
+            gameState.timeLeft = round.duration;
+            
             document.getElementById('round-display').textContent = 
                 `ROUND ${roundIndex + 1}: ${round.name}`;
 
-            // Show transition
+            // Show instruction screen
             const gameArea = document.getElementById('game-area');
+            
+            let instructionText = '';
+            if (round.type === 'catch') {
+                instructionText = 'TAP FALLING ELVES!<br>First tap wins points!<br>Avoid bad items!';
+            } else if (round.type === 'memory') {
+                instructionText = 'FIND MATCHING PAIRS!<br>+15 points per match<br>This is YOUR OWN game!';
+            } else if (round.type === 'speed') {
+                instructionText = 'TAP TARGETS FAST!<br>First tap wins +20 points<br>Ready your fingers!';
+            } else if (round.type === 'deli') {
+                instructionText = 'HIT CARA AS MANY TIMES AS YOU CAN<br>TO GET THE FIRST TICKET IN THE QUEUE!<br>Most taps wins!';
+            }
+            
             gameArea.innerHTML = `
                 <div class="round-transition">
                     <div class="round-icon">${round.icon}</div>
                     <div class="round-title">${round.name}</div>
-                    <div class="round-desc">Get ready...</div>
+                    <div class="round-desc" style="font-size: 1.2rem; line-height: 1.8;">${instructionText}</div>
+                    <div class="round-desc" style="margin-top: 20px; font-size: 1.8rem; color: #ffff00;">Starting in <span id="countdown">3</span>...</div>
                 </div>
             `;
 
             gameRef.update({
                 currentRound: roundIndex,
                 roundData: round,
-                timeLeft: ROUND_DURATION
+                timeLeft: round.duration
             });
 
-            setTimeout(() => {
-                gameArea.innerHTML = '';
-                startTimer();
-                
-                if (round.type === 'catch') {
-                    startCatchGame();
-                } else if (round.type === 'speed') {
-                    startSpeedGame();
+            // Countdown before starting
+            let countdown = 3;
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                const countdownEl = document.getElementById('countdown');
+                if (countdownEl) {
+                    if (countdown > 0) {
+                        countdownEl.textContent = countdown;
+                    } else {
+                        countdownEl.textContent = 'GO!';
+                    }
                 }
-            }, 3000);
+                
+                if (countdown < 0) {
+                    clearInterval(countdownInterval);
+                    gameArea.innerHTML = '';
+                    startTimer();
+                    
+                    if (round.type === 'catch') {
+                        startCatchGame();
+                    } else if (round.type === 'speed') {
+                        startSpeedGame();
+                    } else if (round.type === 'deli') {
+                        startDeliGame();
+                    }
+                }
+            }, 1000);
         }
 
         function startTimer() {
@@ -931,7 +962,9 @@
             
             const itemData = {
                 id: itemId,
-                emoji: item.emoji,
+                emoji: item.emoji || null,
+                image: item.image || null,
+                name: item.name || null,
                 points: item.points,
                 x: Math.random() * 85 + 5,
                 y: -50
@@ -941,10 +974,25 @@
 
             const itemEl = document.createElement('div');
             itemEl.className = 'falling-item';
-            itemEl.textContent = item.emoji;
+            
+            if (itemData.image) {
+                // Create image element for team photos
+                const img = document.createElement('img');
+                img.src = itemData.image;
+                img.style.width = '80px';
+                img.style.height = '80px';
+                img.style.borderRadius = '50%';
+                img.style.border = '4px solid ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
+                img.style.boxShadow = '0 0 20px ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
+                itemEl.appendChild(img);
+            } else {
+                // Use emoji for bad items
+                itemEl.textContent = itemData.emoji;
+                itemEl.style.color = itemData.points > 0 ? '#ffff00' : '#ff0000';
+            }
+            
             itemEl.style.left = itemData.x + '%';
             itemEl.style.top = itemData.y + 'px';
-            itemEl.style.color = item.points > 0 ? '#ffff00' : '#ff0000';
             itemEl.dataset.itemId = itemId;
             document.getElementById('game-area').appendChild(itemEl);
 
@@ -960,7 +1008,7 @@
                 itemData.y = pos;
 
                 // Update Firebase every few frames for smooth sync
-                if (Math.random() < 0.3) {  // Update ~30% of frames to reduce Firebase writes
+                if (Math.random() < 0.3) {
                     gameRef.child('activeItems/' + itemId + '/y').set(pos);
                 }
 
@@ -976,6 +1024,37 @@
         function startSpeedGame() {
             spawnSpeedTarget();
             spawnInterval = setInterval(() => spawnSpeedTarget(), 700);
+        }
+
+        function startDeliGame() {
+            // Deli Counter - players tap Cara as many times as possible
+            // No health bar, Cara never disappears, most taps wins
+            const gameArea = document.getElementById('game-area');
+            
+            gameArea.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;">
+                    <img src="Cara.jpg" id="cara-deli" style="width: 250px; height: 250px; border-radius: 50%; border: 8px solid #ff00ff; box-shadow: 0 0 40px #ff00ff; cursor: pointer; animation: deliFloat 1.5s ease-in-out infinite; user-select: none;">
+                    <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff; margin: 30px 0; text-align: center;">
+                        CARA'S CHRISTMAS DELI COUNTER
+                    </div>
+                    <div style="font-size: 1.2rem; color: #00ff00; text-align: center; line-height: 1.8; max-width: 600px;">
+                        TAP CARA TO GET YOUR TICKET!<br>
+                        <span style="font-size: 0.9rem;">Most taps wins this round!</span>
+                    </div>
+                </div>
+                <style>
+                    @keyframes deliFloat {
+                        0%, 100% { transform: translateY(0) scale(1); }
+                        50% { transform: translateY(-15px) scale(1.05); }
+                    }
+                    #cara-deli:active {
+                        transform: scale(0.9) !important;
+                    }
+                </style>
+            `;
+            
+            // No spawning or health tracking - players just tap Cara image
+            // Points are awarded on each tap (handled in player catching)
         }
 
         function spawnSpeedTarget() {
