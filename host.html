@@ -929,6 +929,8 @@
                     
                     if (round.type === 'catch') {
                         startCatchGame();
+                    } else if (round.type === 'memory') {
+                        startMemoryGameHost(); // Show message on host screen
                     } else if (round.type === 'speed') {
                         startSpeedGame();
                         startSpeedGameHost(); // Show message on host screen
@@ -1040,14 +1042,19 @@
             const gameArea = document.getElementById('game-area');
             
             gameArea.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;">
-                    <img src="Cara.jpg" id="cara-deli" style="width: 250px; height: 250px; border-radius: 50%; border: 8px solid #ff00ff; box-shadow: 0 0 40px #ff00ff; cursor: pointer; animation: deliFloat 1.5s ease-in-out infinite; user-select: none;">
-                    <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff; margin: 30px 0; text-align: center;">
-                        CARA'S CHRISTMAS DELI COUNTER
-                    </div>
-                    <div style="font-size: 1.2rem; color: #00ff00; text-align: center; line-height: 1.8; max-width: 600px;">
-                        TAP CARA TO GET YOUR TICKET!<br>
-                        <span style="font-size: 0.9rem;">Most taps wins this round!</span>
+                <div style="background-image: url('deli-background.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; position: relative;">
+                    <!-- Dark overlay for better contrast -->
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.3); pointer-events: none;"></div>
+                    
+                    <div style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center;">
+                        <img src="Cara.jpg" id="cara-deli" style="width: 250px; height: 250px; border-radius: 50%; border: 8px solid #ff00ff; box-shadow: 0 0 40px #ff00ff, 0 10px 40px rgba(0, 0, 0, 0.5); cursor: pointer; animation: deliFloat 1.5s ease-in-out infinite; user-select: none;">
+                        <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff, 0 0 40px #ff00ff, 2px 2px 4px rgba(0,0,0,0.8); margin: 30px 0; text-align: center; font-weight: bold;">
+                            CARA'S CHRISTMAS DELI COUNTER
+                        </div>
+                        <div style="font-size: 1.2rem; color: #00ff00; text-shadow: 0 0 20px #00ff00, 2px 2px 4px rgba(0,0,0,0.8); text-align: center; line-height: 1.8; max-width: 600px;">
+                            TAP CARA TO GET YOUR TICKET!<br>
+                            <span style="font-size: 0.9rem;">Most taps wins this round!</span>
+                        </div>
                     </div>
                 </div>
                 <style>
@@ -1089,12 +1096,42 @@
             `;
         }
 
+        function startMemoryGameHost() {
+            // Memory game - show message on host screen
+            const gameArea = document.getElementById('game-area');
+            
+            gameArea.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
+                    <div style="font-size: 5rem; margin-bottom: 30px; animation: pulse 1s ease-in-out infinite;">🎁</div>
+                    <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff; margin-bottom: 20px;">
+                        MEMORY MATCH
+                    </div>
+                    <div style="font-size: 1.8rem; color: #00ff00; text-shadow: 0 0 20px #00ff00; line-height: 1.8; max-width: 600px; font-weight: bold;">
+                        📱 WATCH YOUR PHONE! 📱
+                    </div>
+                    <div style="font-size: 1.1rem; color: #ffff00; margin-top: 20px;">
+                        Players are finding matching pairs!
+                    </div>
+                </div>
+                <style>
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(1.2); opacity: 0.8; }
+                    }
+                </style>
+            `;
+        }
+
         function spawnSpeedTarget() {
             const itemId = ++gameState.itemId;
             
+            // Randomize elf photos for speed targets
+            const elfPhotos = ['Aaron.jpg', 'Cara.jpg', 'Cricket.jpg', 'Kelly.jpg', 'Philippa.jpg', 'Mi-cool.jpg'];
+            const randomElf = elfPhotos[Math.floor(Math.random() * elfPhotos.length)];
+            
             const itemData = {
                 id: itemId,
-                emoji: '🎯',
+                image: randomElf,
                 points: 20,
                 x: Math.random() * 80 + 10,
                 y: Math.random() * 60 + 20
@@ -1153,17 +1190,24 @@
             podium.innerHTML = sorted.slice(0, 3).map((p, i) => {
                 // Normalize player name for matching
                 const playerKey = p.name.toLowerCase().trim().replace(/\s+/g, '-');
-                const photoUrl = photoMap[playerKey] || photoMap[p.name.toLowerCase().trim()] || null;
+                const altKey = p.name.toLowerCase().trim(); // Try without replacement too
+                const photoUrl = photoMap[playerKey] || photoMap[altKey] || null;
+                
+                // Debug logging
+                console.log('Player:', p.name, '| Key:', playerKey, '| Alt:', altKey, '| Photo:', photoUrl);
                 
                 return `
                 <div class="podium ${classes[i]}" style="animation-delay: ${i * 0.3}s;">
                     ${photoUrl ? `
-                        <img src="${photoUrl}" style="width: 120px; height: 120px; border-radius: 50%; 
+                        <img src="${photoUrl}" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                             style="width: 120px; height: 120px; border-radius: 50%; 
                             border: 5px solid ${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : '#cd7f32'}; 
                             box-shadow: 0 0 30px ${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : '#cd7f32'};
                             margin-bottom: 15px;
                             animation: photoFloat 2s ease-in-out infinite;
                             animation-delay: ${i * 0.2}s;">
+                        <div class="podium-emoji" style="display: none;">${medals[i]}</div>
                     ` : `
                         <div class="podium-emoji">${medals[i]}</div>
                     `}
@@ -1173,15 +1217,18 @@
                 </div>
             `}).join('');
             
-            // Add floating animation style
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes photoFloat {
-                    0%, 100% { transform: translateY(0) rotate(-2deg); }
-                    50% { transform: translateY(-10px) rotate(2deg); }
-                }
-            `;
-            document.head.appendChild(style);
+            // Make sure animation style exists
+            if (!document.getElementById('photoFloat-style')) {
+                const style = document.createElement('style');
+                style.id = 'photoFloat-style';
+                style.textContent = `
+                    @keyframes photoFloat {
+                        0%, 100% { transform: translateY(0) rotate(-2deg); }
+                        50% { transform: translateY(-10px) rotate(2deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
         }
 
         // Initialize
