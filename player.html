@@ -970,29 +970,63 @@
                 // All items are now team photos
                 const img = document.createElement('img');
                 img.src = itemData.image;
-                img.style.width = '70px';
-                img.style.height = '70px';
+                img.style.width = '90px'; // Bigger! (was 70px)
+                img.style.height = '90px';
                 img.style.borderRadius = '50%';
-                img.style.border = itemData.good ? '3px solid #00ff00' : '3px solid #ff0000';
-                img.style.boxShadow = itemData.good ? '0 0 15px #00ff00' : '0 0 15px #ff0000';
+                img.style.border = itemData.good ? '4px solid #00ff00' : '4px solid #ff0000';
+                img.style.boxShadow = itemData.good ? '0 0 20px #00ff00' : '0 0 20px #ff0000';
                 img.style.pointerEvents = 'none';
+                img.style.animation = 'elfPulse 0.8s ease-in-out infinite';
                 
                 // Handle image loading errors
                 img.onerror = function() {
                     console.error('Failed to load image:', itemData.image);
                     // Show emoji fallback
                     itemEl.textContent = itemData.good ? '✅' : '❌';
-                    itemEl.style.fontSize = '3rem';
+                    itemEl.style.fontSize = '4rem';
                 };
                 
                 itemEl.appendChild(img);
                 
+                // Add pulsing animation style
+                if (!document.getElementById('elf-pulse-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'elf-pulse-style';
+                    style.textContent = `
+                        @keyframes elfPulse {
+                            0%, 100% { transform: scale(1); }
+                            50% { transform: scale(1.15); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
                 itemEl.style.left = itemData.x + '%';
                 itemEl.style.top = itemData.y + 'px';
             } else if (currentRound === 2) {
-                // Speed game - targets
+                // Speed game - elf photos as targets!
                 itemEl.className = 'speed-target';
-                itemEl.textContent = itemData.emoji || '🎯';
+                
+                if (itemData.image) {
+                    // Use elf photo
+                    const img = document.createElement('img');
+                    img.src = itemData.image;
+                    img.style.width = '80px';
+                    img.style.height = '80px';
+                    img.style.borderRadius = '50%';
+                    img.style.border = '4px solid #ff00ff';
+                    img.style.boxShadow = '0 0 20px #ff00ff';
+                    img.style.pointerEvents = 'none';
+                    img.onerror = function() {
+                        itemEl.textContent = '🎯';
+                        itemEl.style.fontSize = '4rem';
+                    };
+                    itemEl.appendChild(img);
+                } else {
+                    // Fallback to emoji
+                    itemEl.textContent = itemData.emoji || '🎯';
+                }
+                
                 itemEl.style.left = itemData.x + '%';
                 itemEl.style.top = itemData.y + '%';
             }
