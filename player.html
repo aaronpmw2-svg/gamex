@@ -19,12 +19,18 @@
         }
 
         body {
-            background: linear-gradient(135deg, #0a0033 0%, #1a0033 100%);
+            background: linear-gradient(135deg, #0a0033 0%, #1a0033 40%, #2d0a4e 70%, #0a0033 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             font-family: 'Press Start 2P', cursive;
             color: #fff;
-            min-height: 100vh;
             overflow: hidden;
             touch-action: manipulation;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .screen {
@@ -42,14 +48,32 @@
 
         /* Join Screen */
         .join-card {
-            background: rgba(0, 0, 0, 0.95);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 0, 40, 0.95));
             border: 5px solid #00ffff;
             padding: 35px;
             border-radius: 20px;
-            box-shadow: 0 0 50px #00ffff;
+            box-shadow: 0 0 50px #00ffff, 0 20px 60px rgba(0, 0, 0, 0.5);
             max-width: 420px;
             width: 90%;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .join-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: cardGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes cardGlow {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            50% { transform: translateX(50%) rotate(180deg); }
         }
 
         h1 {
@@ -81,7 +105,9 @@
 
         .btn {
             width: 100%;
-            background: linear-gradient(180deg, #ff0080, #cc0066);
+            background: linear-gradient(135deg, #ff0080, #ff00ff, #cc0066);
+            background-size: 200% 200%;
+            animation: buttonGradient 3s ease infinite;
             border: 4px solid #ff00ff;
             color: #fff;
             font-family: 'Press Start 2P', cursive;
@@ -89,13 +115,37 @@
             padding: 18px;
             cursor: pointer;
             border-radius: 10px;
-            box-shadow: 0 0 30px #ff00ff;
+            box-shadow: 0 0 30px #ff00ff, 0 5px 20px rgba(255, 0, 255, 0.3);
             margin-top: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        @keyframes buttonGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: buttonShine 2s ease-in-out infinite;
+        }
+
+        @keyframes buttonShine {
+            0%, 100% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
         }
 
         .btn:active {
             transform: scale(0.95);
-            box-shadow: 0 0 50px #ff00ff;
+            box-shadow: 0 0 50px #ff00ff, 0 2px 10px rgba(255, 0, 255, 0.5);
         }
 
         .info-text {
@@ -167,17 +217,33 @@
             cursor: pointer;
             z-index: 100;
             animation: itemWobble 0.5s ease-in-out infinite;
-            filter: drop-shadow(0 0 15px currentColor);
+            filter: drop-shadow(0 0 15px currentColor) drop-shadow(0 0 25px currentColor);
             transition: transform 0.1s;
         }
 
         @keyframes itemWobble {
-            0%, 100% { transform: rotate(-10deg); }
-            50% { transform: rotate(10deg); }
+            0%, 100% { transform: rotate(-10deg) scale(1); }
+            50% { transform: rotate(10deg) scale(1.05); }
         }
 
         .falling-item:active {
             transform: scale(1.4) !important;
+            filter: drop-shadow(0 0 25px currentColor) drop-shadow(0 0 40px currentColor) !important;
+        }
+
+        .falling-item::before {
+            content: '✨';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            font-size: 0.8rem;
+            animation: sparkle 1s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
         }
 
         .speed-target {
@@ -190,16 +256,39 @@
             justify-content: center;
             cursor: pointer;
             animation: targetPulse 0.6s ease-in-out infinite;
-            filter: drop-shadow(0 0 20px #ff00ff);
+            filter: drop-shadow(0 0 20px #ff00ff) drop-shadow(0 0 35px #ff00ff);
+            transition: all 0.1s;
         }
 
         @keyframes targetPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                filter: drop-shadow(0 0 20px #ff00ff) drop-shadow(0 0 35px #ff00ff);
+            }
+            50% { 
+                transform: scale(1.2) rotate(10deg); 
+                filter: drop-shadow(0 0 30px #ff00ff) drop-shadow(0 0 50px #ff00ff);
+            }
         }
 
         .speed-target:active {
             transform: scale(1.5) !important;
+            filter: drop-shadow(0 0 40px #ffff00) drop-shadow(0 0 60px #ffff00) !important;
+        }
+
+        .speed-target::after {
+            content: '';
+            position: absolute;
+            width: 110%;
+            height: 110%;
+            border: 3px solid #ff00ff;
+            border-radius: 50%;
+            animation: targetRing 1s ease-out infinite;
+        }
+
+        @keyframes targetRing {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
         }
 
         .memory-grid {
@@ -213,7 +302,7 @@
 
         .memory-card {
             aspect-ratio: 1;
-            background: rgba(0, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 200, 255, 0.25));
             border: 3px solid #00ffff;
             border-radius: 12px;
             display: flex;
@@ -222,21 +311,51 @@
             font-size: 3rem;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .memory-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: cardShine 3s ease-in-out infinite;
+        }
+
+        @keyframes cardShine {
+            0%, 100% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
         }
 
         .memory-card:active {
-            transform: scale(1.1);
+            transform: scale(1.1) rotateY(10deg);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
         }
 
         .memory-card.flipped {
-            background: rgba(255, 0, 255, 0.4);
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.3), rgba(255, 0, 200, 0.4));
             border-color: #ff00ff;
+            transform: rotateY(180deg);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
         }
 
         .memory-card.matched {
-            background: rgba(0, 255, 0, 0.4);
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.3), rgba(0, 200, 0, 0.4));
             border-color: #00ff00;
             pointer-events: none;
+            animation: matchPulse 0.5s ease-out;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.7);
+        }
+
+        @keyframes matchPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
         }
 
         .boss-container {
@@ -307,12 +426,29 @@
             pointer-events: none;
             z-index: 200;
             animation: feedbackPop 0.8s ease-out forwards;
+            font-weight: bold;
+            text-shadow: 0 0 20px currentColor;
         }
 
         @keyframes feedbackPop {
-            0% { opacity: 1; transform: scale(0.5); }
-            50% { opacity: 1; transform: scale(1.5); }
-            100% { opacity: 0; transform: scale(1) translateY(-60px); }
+            0% { 
+                opacity: 1; 
+                transform: scale(0.5) translateY(0); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.8) translateY(-30px); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(1) translateY(-80px); 
+            }
+        }
+
+        /* Add particle burst on catch */
+        @keyframes particleBurst {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
         }
 
         .status-card {
@@ -834,25 +970,19 @@
             const itemEl = document.createElement('div');
             
             if (currentRound === 0) {
-                // Catch game - falling items (team photos or emojis)
+                // Catch game - falling items (all elf photos with red or green circles)
                 itemEl.className = 'falling-item';
                 
-                if (itemData.image) {
-                    // Team photo
-                    const img = document.createElement('img');
-                    img.src = itemData.image;
-                    img.style.width = '70px';
-                    img.style.height = '70px';
-                    img.style.borderRadius = '50%';
-                    img.style.border = '3px solid ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
-                    img.style.boxShadow = '0 0 15px ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
-                    img.style.pointerEvents = 'none';
-                    itemEl.appendChild(img);
-                } else {
-                    // Emoji for bad items
-                    itemEl.textContent = itemData.emoji;
-                    itemEl.style.color = itemData.points > 0 ? '#ffff00' : '#ff0000';
-                }
+                // All items are now team photos
+                const img = document.createElement('img');
+                img.src = itemData.image;
+                img.style.width = '70px';
+                img.style.height = '70px';
+                img.style.borderRadius = '50%';
+                img.style.border = itemData.good ? '3px solid #00ff00' : '3px solid #ff0000';
+                img.style.boxShadow = itemData.good ? '0 0 15px #00ff00' : '0 0 15px #ff0000';
+                img.style.pointerEvents = 'none';
+                itemEl.appendChild(img);
                 
                 itemEl.style.left = itemData.x + '%';
                 itemEl.style.top = itemData.y + 'px';
@@ -909,13 +1039,14 @@
         function setupMemoryGame() {
             const gameArea = document.getElementById('game-area');
             
-            const icons = ['🎁', '⭐', '🎄', '🍬', '❄️', '🔔', '🎅', '🦌'];
+            // More icons for harder game - 12 pairs (24 cards)
+            const icons = ['🎁', '⭐', '🎄', '🍬', '❄️', '🔔', '🎅', '🦌', '🎪', '🎺', '🎻', '🎸'];
             memoryCards = [...icons, ...icons].sort(() => Math.random() - 0.5);
 
             const gridHtml = `
-                <div class="memory-grid">
+                <div class="memory-grid" style="grid-template-columns: repeat(4, 1fr); max-width: 500px; gap: 8px; padding: 15px;">
                     ${memoryCards.map((icon, index) => `
-                        <div class="memory-card" data-card-id="${index}" data-icon="${icon}">
+                        <div class="memory-card" data-card-id="${index}" data-icon="${icon}" style="font-size: 2.2rem;">
                             ❓
                         </div>
                     `).join('')}
@@ -993,15 +1124,41 @@
             const gameArea = document.getElementById('game-area');
             
             gameArea.innerHTML = `
-                <div class="boss-container">
-                    <img src="Cara.jpg" id="cara-deli" style="width: 200px; height: 200px; border-radius: 50%; border: 6px solid #ff00ff; box-shadow: 0 0 30px #ff00ff; cursor: pointer; user-select: none; animation: deliFloat 1.5s ease-in-out infinite;">
-                    <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff; margin: 25px 0; text-align: center;">
-                        CARA'S CHRISTMAS DELI COUNTER
-                    </div>
-                    <div class="boss-instruction" style="margin-top: 15px;">
-                        TAP CARA TO GET YOUR TICKET!<br>
-                        <span style="font-size: 0.8rem;">+10 points per tap!</span><br>
-                        <span style="font-size: 0.7rem; color: #ffff00;">Most taps wins this round!</span>
+                <div class="boss-container" style="background: linear-gradient(180deg, rgba(139, 69, 19, 0.3) 0%, rgba(160, 82, 45, 0.2) 100%); position: relative; overflow: hidden;">
+                    <!-- Deli Counter Background Pattern -->
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: 
+                        repeating-linear-gradient(90deg, rgba(139, 69, 19, 0.1) 0px, transparent 2px, transparent 40px),
+                        repeating-linear-gradient(0deg, rgba(160, 82, 45, 0.15) 0px, transparent 2px, transparent 40px);
+                        pointer-events: none;"></div>
+                    
+                    <!-- Counter Top -->
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 120px; 
+                        background: linear-gradient(180deg, rgba(101, 67, 33, 0.4), rgba(139, 69, 19, 0.6));
+                        border-top: 4px solid rgba(160, 82, 45, 0.8);
+                        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);"></div>
+                    
+                    <!-- Ticket Dispenser -->
+                    <div style="position: absolute; top: 20px; right: 30px; width: 80px; height: 100px;
+                        background: linear-gradient(135deg, #ff6666, #ff3333);
+                        border: 3px solid #cc0000;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 2rem;">🎟️</div>
+                    
+                    <!-- Cara in center -->
+                    <div style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;">
+                        <img src="Cara.jpg" id="cara-deli" style="width: 200px; height: 200px; border-radius: 50%; border: 6px solid #ff00ff; box-shadow: 0 0 30px #ff00ff, 0 10px 40px rgba(0, 0, 0, 0.5); cursor: pointer; user-select: none; animation: deliFloat 1.5s ease-in-out infinite;">
+                        <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; margin: 25px 0; text-align: center; font-weight: bold;">
+                            CARA'S CHRISTMAS DELI COUNTER
+                        </div>
+                        <div class="boss-instruction" style="margin-top: 15px; background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 10px; border: 2px solid #ff00ff;">
+                            TAP CARA TO GET YOUR TICKET!<br>
+                            <span style="font-size: 0.8rem;">+10 points per tap!</span><br>
+                            <span style="font-size: 0.7rem; color: #ffff00;">Most taps wins this round!</span>
+                        </div>
                     </div>
                 </div>
                 <style>
