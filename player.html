@@ -541,7 +541,7 @@
     <!-- Join Screen -->
     <div id="join-screen" class="screen active">
         <div class="join-card">
-            <h1>🎄 CHRISTMAS CATCH CLASH 🎄</h1>
+            <h1>🎄 TEAM 8's Up to Snow Good 🎄</h1>
             
             <input 
                 type="text" 
@@ -558,12 +558,6 @@
             >
 
             <button class="btn" onclick="joinGame()">JOIN GAME</button>
-
-            <div class="info-text">
-                ⚡ Tap falling items to catch them!<br>
-                🎯 Be fastest to win points!<br>
-                🏆 4 different mini-games!
-            </div>
             
             <div id="error-message" class="error-text" style="display: none;"></div>
         </div>
@@ -626,9 +620,9 @@
         };
 
         const ROUNDS = [
-            { name: 'CATCH RUSH', icon: '🎁', type: 'catch', duration: 90 },
-            { name: 'MEMORY MATCH', icon: '🧠', type: 'memory', duration: 90 },
-            { name: 'SPEED TAP', icon: '⚡', type: 'speed', duration: 90 },
+            { name: 'CATCH ME IF YOU CAN', icon: '🎁', type: 'catch', duration: 90 },
+            { name: 'MEMORY MATCH', icon: '🎁', type: 'memory', duration: 90 },
+            { name: 'TAP ME OUTTA HERE', icon: '⚡', type: 'speed', duration: 90 },
             { name: "CARA'S DELI COUNTER", icon: '🎟️', type: 'deli', duration: 15 }
         ];
 
@@ -890,7 +884,7 @@
             } else if (round.type === 'speed') {
                 instructionText = 'TAP TARGETS FAST!<br>+20 per hit';
             } else if (round.type === 'deli') {
-                instructionText = 'TAP CARA AS FAST AS YOU CAN!<br>Most taps wins!';
+                instructionText = 'TAP CARA AS FAST AS YOU CAN!<br>The most taps wins!';
             }
 
             gameArea.innerHTML = `
@@ -982,6 +976,15 @@
                 img.style.border = itemData.good ? '3px solid #00ff00' : '3px solid #ff0000';
                 img.style.boxShadow = itemData.good ? '0 0 15px #00ff00' : '0 0 15px #ff0000';
                 img.style.pointerEvents = 'none';
+                
+                // Handle image loading errors
+                img.onerror = function() {
+                    console.error('Failed to load image:', itemData.image);
+                    // Show emoji fallback
+                    itemEl.textContent = itemData.good ? '✅' : '❌';
+                    itemEl.style.fontSize = '3rem';
+                };
+                
                 itemEl.appendChild(img);
                 
                 itemEl.style.left = itemData.x + '%';
@@ -1124,37 +1127,17 @@
             const gameArea = document.getElementById('game-area');
             
             gameArea.innerHTML = `
-                <div class="boss-container" style="background: linear-gradient(180deg, rgba(139, 69, 19, 0.3) 0%, rgba(160, 82, 45, 0.2) 100%); position: relative; overflow: hidden;">
-                    <!-- Deli Counter Background Pattern -->
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: 
-                        repeating-linear-gradient(90deg, rgba(139, 69, 19, 0.1) 0px, transparent 2px, transparent 40px),
-                        repeating-linear-gradient(0deg, rgba(160, 82, 45, 0.15) 0px, transparent 2px, transparent 40px);
-                        pointer-events: none;"></div>
-                    
-                    <!-- Counter Top -->
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 120px; 
-                        background: linear-gradient(180deg, rgba(101, 67, 33, 0.4), rgba(139, 69, 19, 0.6));
-                        border-top: 4px solid rgba(160, 82, 45, 0.8);
-                        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);"></div>
-                    
-                    <!-- Ticket Dispenser -->
-                    <div style="position: absolute; top: 20px; right: 30px; width: 80px; height: 100px;
-                        background: linear-gradient(135deg, #ff6666, #ff3333);
-                        border: 3px solid #cc0000;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 2rem;">🎟️</div>
+                <div class="boss-container" style="background-image: url('deli-background.png'); background-size: cover; background-position: center; position: relative; overflow: hidden;">
+                    <!-- Dark overlay for better contrast -->
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); pointer-events: none;"></div>
                     
                     <!-- Cara in center -->
                     <div style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;">
                         <img src="Cara.jpg" id="cara-deli" style="width: 200px; height: 200px; border-radius: 50%; border: 6px solid #ff00ff; box-shadow: 0 0 30px #ff00ff, 0 10px 40px rgba(0, 0, 0, 0.5); cursor: pointer; user-select: none; animation: deliFloat 1.5s ease-in-out infinite;">
-                        <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; margin: 25px 0; text-align: center; font-weight: bold;">
+                        <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 2px 2px 4px rgba(0,0,0,0.8); margin: 25px 0; text-align: center; font-weight: bold;">
                             CARA'S CHRISTMAS DELI COUNTER
                         </div>
-                        <div class="boss-instruction" style="margin-top: 15px; background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 10px; border: 2px solid #ff00ff;">
+                        <div class="boss-instruction" style="margin-top: 15px; background: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 10px; border: 2px solid #ff00ff;">
                             TAP CARA TO GET YOUR TICKET!<br>
                             <span style="font-size: 0.8rem;">+10 points per tap!</span><br>
                             <span style="font-size: 0.7rem; color: #ffff00;">Most taps wins this round!</span>
