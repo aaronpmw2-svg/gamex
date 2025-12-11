@@ -593,14 +593,19 @@
         ];
 
         const CATCH_ITEMS = [
-            { image: 'Aaron.jpg', name: 'Aaron', points: 10 },
-            { image: 'Cara.jpg', name: 'Cara', points: 10 },
-            { image: 'Cricket.jpg', name: 'Cricket', points: 10 },
-            { image: 'Kelly.jpg', name: 'Kelly', points: 10 },
-            { image: 'Philippa.jpg', name: 'Philippa', points: 10 },
-            { image: 'Mi-cool.jpg', name: 'Mi-cool', points: 10 },
-            { emoji: '⚫', points: -10 },
-            { emoji: '💀', points: -15 }
+            // Good items (green circles) - worth +10 points
+            { image: 'Aaron.jpg', name: 'Aaron', points: 10, good: true },
+            { image: 'Cricket.jpg', name: 'Cricket', points: 10, good: true },
+            { image: 'Kelly.jpg', name: 'Kelly', points: 10, good: true },
+            { image: 'Philippa.jpg', name: 'Philippa', points: 10, good: true },
+            { image: 'Mi-cool.jpg', name: 'Mi-cool', points: 10, good: true },
+            // Bad items (red circles) - lose -15 points  
+            { image: 'Aaron.jpg', name: 'Aaron', points: -15, good: false },
+            { image: 'Cara.jpg', name: 'Cara', points: -15, good: false },
+            { image: 'Cricket.jpg', name: 'Cricket', points: -15, good: false },
+            { image: 'Kelly.jpg', name: 'Kelly', points: -15, good: false },
+            { image: 'Philippa.jpg', name: 'Philippa', points: -15, good: false },
+            { image: 'Mi-cool.jpg', name: 'Mi-cool', points: -15, good: false }
         ];
 
         let spawnInterval = null;
@@ -953,7 +958,7 @@
 
         function startCatchGame() {
             spawnCatchItem();
-            spawnInterval = setInterval(() => spawnCatchItem(), 900);
+            spawnInterval = setInterval(() => spawnCatchItem(), 600); // Faster spawning: 600ms (was 900ms)
         }
 
         function spawnCatchItem() {
@@ -962,10 +967,10 @@
             
             const itemData = {
                 id: itemId,
-                emoji: item.emoji || null,
-                image: item.image || null,
-                name: item.name || null,
+                image: item.image,
+                name: item.name,
                 points: item.points,
+                good: item.good,
                 x: Math.random() * 85 + 5,
                 y: -50
             };
@@ -975,21 +980,15 @@
             const itemEl = document.createElement('div');
             itemEl.className = 'falling-item';
             
-            if (itemData.image) {
-                // Create image element for team photos
-                const img = document.createElement('img');
-                img.src = itemData.image;
-                img.style.width = '80px';
-                img.style.height = '80px';
-                img.style.borderRadius = '50%';
-                img.style.border = '4px solid ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
-                img.style.boxShadow = '0 0 20px ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
-                itemEl.appendChild(img);
-            } else {
-                // Use emoji for bad items
-                itemEl.textContent = itemData.emoji;
-                itemEl.style.color = itemData.points > 0 ? '#ffff00' : '#ff0000';
-            }
+            // Create image element for team photos
+            const img = document.createElement('img');
+            img.src = itemData.image;
+            img.style.width = '80px';
+            img.style.height = '80px';
+            img.style.borderRadius = '50%';
+            img.style.border = item.good ? '4px solid #00ff00' : '4px solid #ff0000';
+            img.style.boxShadow = item.good ? '0 0 20px #00ff00' : '0 0 20px #ff0000';
+            itemEl.appendChild(img);
             
             itemEl.style.left = itemData.x + '%';
             itemEl.style.top = itemData.y + 'px';
@@ -999,15 +998,15 @@
             // Update Firebase with initial position
             gameRef.child('activeItems/' + itemId).set(itemData);
 
-            // Animate fall
+            // Animate fall - MUCH FASTER!
             let pos = -50;
-            const fallSpeed = 2.5 + Math.random() * 1.5;
+            const fallSpeed = 4 + Math.random() * 3; // Faster: 4-7px per frame (was 2.5-4)
             const fallInterval = setInterval(() => {
                 pos += fallSpeed;
                 itemEl.style.top = pos + 'px';
                 itemData.y = pos;
 
-                // Update Firebase every few frames for smooth sync
+                // Update Firebase for smooth sync
                 if (Math.random() < 0.3) {
                     gameRef.child('activeItems/' + itemId + '/y').set(pos);
                 }
@@ -1023,7 +1022,7 @@
 
         function startSpeedGame() {
             spawnSpeedTarget();
-            spawnInterval = setInterval(() => spawnSpeedTarget(), 700);
+            spawnInterval = setInterval(() => spawnSpeedTarget(), 500); // Faster: 500ms (was 700ms)
         }
 
         function startDeliGame() {
@@ -1103,17 +1102,51 @@
 
             const sorted = Object.values(gameState.players).sort((a, b) => (b.score || 0) - (a.score || 0));
             const podium = document.getElementById('podium');
-            const emojis = ['🥇', '🥈', '🥉'];
+            const medals = ['🥇', '🥈', '🥉'];
             const classes = ['first', 'second', 'third'];
+            
+            // Map player names to elf photos
+            const photoMap = {
+                'aaron': 'Aaron.jpg',
+                'cara': 'Cara.jpg',
+                'cricket': 'Cricket.jpg',
+                'kelly': 'Kelly.jpg',
+                'philippa': 'Philippa.jpg',
+                'mi-cool': 'Mi-cool.jpg',
+                'micool': 'Mi-cool.jpg'
+            };
 
-            podium.innerHTML = sorted.slice(0, 3).map((p, i) => `
-                <div class="podium ${classes[i]}">
-                    <div class="podium-emoji">${emojis[i]}</div>
+            podium.innerHTML = sorted.slice(0, 3).map((p, i) => {
+                const playerKey = p.name.toLowerCase().replace(/\s+/g, '-');
+                const photoUrl = photoMap[playerKey] || null;
+                
+                return `
+                <div class="podium ${classes[i]}" style="animation-delay: ${i * 0.3}s;">
+                    ${photoUrl ? `
+                        <img src="${photoUrl}" style="width: 120px; height: 120px; border-radius: 50%; 
+                            border: 5px solid ${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : '#cd7f32'}; 
+                            box-shadow: 0 0 30px ${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : '#cd7f32'};
+                            margin-bottom: 15px;
+                            animation: photoFloat 2s ease-in-out infinite;
+                            animation-delay: ${i * 0.2}s;">
+                    ` : `
+                        <div class="podium-emoji">${medals[i]}</div>
+                    `}
                     <div class="podium-name">${p.name}</div>
                     <div class="podium-score">${p.score || 0} pts</div>
                     <div class="podium-stand"></div>
                 </div>
-            `).join('');
+            `}).join('');
+            
+            // Add floating animation style
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes photoFloat {
+                    0%, 100% { transform: translateY(0) rotate(-2deg); }
+                    50% { transform: translateY(-10px) rotate(2deg); }
+                }
+            `;
+            document.head.appendChild(style);
         }
 
         // Initialize
