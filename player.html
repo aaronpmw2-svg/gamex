@@ -892,20 +892,23 @@
                     <div style="font-size: 3rem; margin-bottom: 20px;">${round.icon}</div>
                     <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff; margin-bottom: 20px;">${round.name}</div>
                     <div style="font-size: 1rem; color: #00ff00; line-height: 1.8;">${instructionText}</div>
-                    <div style="font-size: 2.5rem; color: #ffff00; margin-top: 30px; text-shadow: 0 0 25px #ffff00;" id="player-countdown">3</div>
+                    <div style="font-size: 2.5rem; color: #ffff00; margin-top: 30px; text-shadow: 0 0 25px #ffff00;" id="player-countdown">15</div>
                 </div>
             `;
 
-            // Countdown with sounds
-            let countdown = 3;
+            // Countdown with sounds - 15 seconds for reading time!
+            let countdown = 15;
             const countdownInterval = setInterval(() => {
                 countdown--;
                 const countdownEl = document.getElementById('player-countdown');
                 if (countdownEl) {
                     if (countdown > 0) {
                         countdownEl.textContent = countdown;
-                        playSound('countdown');
-                        vibrate(50);
+                        // Only play sound at key moments (10, 5, 3, 2, 1)
+                        if (countdown === 10 || countdown === 5 || countdown <= 3) {
+                            playSound('countdown');
+                            vibrate(50);
+                        }
                     } else {
                         countdownEl.textContent = 'GO!';
                         playSound('go');
