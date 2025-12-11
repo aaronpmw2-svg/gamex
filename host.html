@@ -899,7 +899,7 @@
                     <div class="round-icon">${round.icon}</div>
                     <div class="round-title">${round.name}</div>
                     <div class="round-desc" style="font-size: 1.2rem; line-height: 1.8;">${instructionText}</div>
-                    <div class="round-desc" style="margin-top: 20px; font-size: 1.8rem; color: #ffff00;">Starting in <span id="countdown">3</span>...</div>
+                    <div class="round-desc" style="margin-top: 20px; font-size: 1.8rem; color: #ffff00;">Starting in <span id="countdown">15</span>...</div>
                 </div>
             `;
 
@@ -909,8 +909,8 @@
                 timeLeft: round.duration
             });
 
-            // Countdown before starting
-            let countdown = 3;
+            // Countdown before starting - 15 seconds for players to read!
+            let countdown = 15;
             const countdownInterval = setInterval(() => {
                 countdown--;
                 const countdownEl = document.getElementById('countdown');
@@ -1172,63 +1172,151 @@
 
             const sorted = Object.values(gameState.players).sort((a, b) => (b.score || 0) - (a.score || 0));
             const podium = document.getElementById('podium');
-            const medals = ['🥇', '🥈', '🥉'];
-            const classes = ['first', 'second', 'third'];
+            const topThree = sorted.slice(0, 3);
+            const remaining = sorted.slice(3);
             
-            // Map player names to elf photos (case-insensitive)
-            const photoMap = {
-                'aaron': 'Aaron.jpg',
-                'cara': 'Cara.jpg',
-                'cricket': 'Cricket.jpg',
-                'kelly': 'Kelly.jpg',
-                'philippa': 'Philippa.jpg',
-                'mi-cool': 'Mi-cool.jpg',
-                'micool': 'Mi-cool.jpg',
-                'mi cool': 'Mi-cool.jpg'
+            // Map player names to elf photos (case-insensitive, try everything!)
+            const getElfPhoto = (name) => {
+                const photos = {
+                    'aaron': 'Aaron.jpg',
+                    'cara': 'Cara.jpg',
+                    'cricket': 'Cricket.jpg',
+                    'kelly': 'Kelly.jpg',
+                    'philippa': 'Philippa.jpg',
+                    'micool': 'Mi-cool.jpg',
+                    'mi-cool': 'Mi-cool.jpg',
+                    'mi cool': 'Mi-cool.jpg'
+                };
+                
+                const normalized = name.toLowerCase().trim().replace(/\s+/g, '');
+                const withDash = name.toLowerCase().trim().replace(/\s+/g, '-');
+                
+                console.log('Looking up photo for:', name, '| normalized:', normalized, '| withDash:', withDash);
+                
+                return photos[normalized] || photos[withDash] || photos[name.toLowerCase().trim()] || null;
             };
 
-            podium.innerHTML = sorted.slice(0, 3).map((p, i) => {
-                // Normalize player name for matching
-                const playerKey = p.name.toLowerCase().trim().replace(/\s+/g, '-');
-                const altKey = p.name.toLowerCase().trim(); // Try without replacement too
-                const photoUrl = photoMap[playerKey] || photoMap[altKey] || null;
-                
-                // Debug logging
-                console.log('Player:', p.name, '| Key:', playerKey, '| Alt:', altKey, '| Photo:', photoUrl);
-                
-                return `
-                <div class="podium ${classes[i]}" style="animation-delay: ${i * 0.3}s;">
-                    ${photoUrl ? `
-                        <img src="${photoUrl}" 
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                             style="width: 120px; height: 120px; border-radius: 50%; 
-                            border: 5px solid ${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : '#cd7f32'}; 
-                            box-shadow: 0 0 30px ${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : '#cd7f32'};
-                            margin-bottom: 15px;
-                            animation: photoFloat 2s ease-in-out infinite;
-                            animation-delay: ${i * 0.2}s;">
-                        <div class="podium-emoji" style="display: none;">${medals[i]}</div>
-                    ` : `
-                        <div class="podium-emoji">${medals[i]}</div>
-                    `}
-                    <div class="podium-name">${p.name}</div>
-                    <div class="podium-score">${p.score || 0} pts</div>
-                    <div class="podium-stand"></div>
-                </div>
-            `}).join('');
+            // Build podium HTML with new design
+            let podiumHTML = `
+                <div style="display: flex; justify-content: center; align-items: flex-end; gap: 40px; margin: 40px 0; position: relative;">
+            `;
             
-            // Make sure animation style exists
-            if (!document.getElementById('photoFloat-style')) {
-                const style = document.createElement('style');
-                style.id = 'photoFloat-style';
-                style.textContent = `
-                    @keyframes photoFloat {
-                        0%, 100% { transform: translateY(0) rotate(-2deg); }
-                        50% { transform: translateY(-10px) rotate(2deg); }
-                    }
+            // Remaining players on left side
+            if (remaining.length > 0) {
+                podiumHTML += `
+                    <div style="position: absolute; left: 0; top: 0; display: flex; flex-direction: column; gap: 15px; max-width: 200px;">
+                        <div style="font-size: 1.2rem; color: #00ff00; text-shadow: 0 0 15px #00ff00; margin-bottom: 10px; font-weight: bold;">
+                            OTHER PLAYERS:
+                        </div>
                 `;
-                document.head.appendChild(style);
+                
+                remaining.forEach((p, i) => {
+                    const photo = getElfPhoto(p.name);
+                    podiumHTML += `
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.7); padding: 8px; border-radius: 10px; border: 2px solid #666;">
+                            ${photo ? `
+                                <img src="${photo}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #888;" 
+                                     onerror="this.style.display='none';">
+                            ` : ''}
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.9rem; color: #ffff00;">#${i + 4}</div>
+                                <div style="font-size: 0.8rem; color: #fff;">${p.name}</div>
+                                <div style="font-size: 0.7rem; color: #00ff00;">${p.score || 0} pts</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                podiumHTML += `</div>`;
             }
+            
+            // Top 3 podium (2nd, 1st, 3rd order for proper podium height)
+            const podiumOrder = [1, 0, 2]; // 2nd place, 1st place, 3rd place
+            const heights = ['280px', '340px', '220px'];
+            const prizes = ['🥈', '🥇', '🥉'];
+            const borders = ['#c0c0c0', '#ffd700', '#cd7f32'];
+            
+            podiumOrder.forEach((idx, orderIdx) => {
+                if (topThree[idx]) {
+                    const p = topThree[idx];
+                    const photo = getElfPhoto(p.name);
+                    const place = idx + 1;
+                    
+                    console.log(`Podium Place ${place}:`, p.name, '| Photo:', photo);
+                    
+                    podiumHTML += `
+                        <div style="display: flex; flex-direction: column; align-items: center; animation: podiumRise 0.6s ease-out ${orderIdx * 0.2}s both;">
+                            <!-- Prize on top -->
+                            <div style="font-size: 4rem; animation: prizeFloat 2s ease-in-out infinite; animation-delay: ${orderIdx * 0.3}s;">
+                                ${prizes[idx]}
+                            </div>
+                            
+                            <!-- Elf photo -->
+                            ${photo ? `
+                                <img src="${photo}" 
+                                     style="width: 120px; height: 120px; border-radius: 50%; 
+                                            border: 5px solid ${borders[idx]}; 
+                                            box-shadow: 0 0 30px ${borders[idx]}, 0 10px 40px rgba(0,0,0,0.5);
+                                            margin: 10px 0;
+                                            animation: elfFloat 2.5s ease-in-out infinite;
+                                            animation-delay: ${orderIdx * 0.2}s;
+                                            position: relative;
+                                            z-index: 10;"
+                                     onerror="this.outerHTML='<div style=\\'font-size: 6rem; margin: 10px 0;\\'>${prizes[idx]}</div>';">
+                            ` : `
+                                <div style="font-size: 6rem; margin: 10px 0;">${prizes[idx]}</div>
+                            `}
+                            
+                            <!-- Name and score -->
+                            <div style="text-align: center; margin-bottom: 15px; position: relative; z-index: 10;">
+                                <div style="font-size: 1.5rem; color: #fff; text-shadow: 0 0 20px ${borders[idx]}, 2px 2px 4px rgba(0,0,0,0.8); font-weight: bold;">
+                                    ${p.name}
+                                </div>
+                                <div style="font-size: 1.8rem; color: ${borders[idx]}; text-shadow: 0 0 25px ${borders[idx]}; font-weight: bold;">
+                                    ${p.score || 0} pts
+                                </div>
+                            </div>
+                            
+                            <!-- Podium stand -->
+                            <div style="width: 150px; height: ${heights[orderIdx]}; 
+                                        background: linear-gradient(180deg, ${borders[idx]}88, ${borders[idx]}44);
+                                        border: 4px solid ${borders[idx]};
+                                        border-radius: 10px 10px 0 0;
+                                        box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 30px ${borders[idx]}44;
+                                        position: relative;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;">
+                                <div style="font-size: 4rem; color: ${borders[idx]}; text-shadow: 0 0 20px ${borders[idx]}; font-weight: bold; opacity: 0.3;">
+                                    ${place}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            podiumHTML += `</div>`;
+            
+            // Add animation styles
+            podiumHTML += `
+                <style>
+                    @keyframes podiumRise {
+                        from { transform: translateY(100px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                    @keyframes prizeFloat {
+                        0%, 100% { transform: translateY(0) rotate(-5deg); }
+                        50% { transform: translateY(-15px) rotate(5deg); }
+                    }
+                    @keyframes elfFloat {
+                        0%, 100% { transform: translateY(0) scale(1); }
+                        50% { transform: translateY(-8px) scale(1.05); }
+                    }
+                </style>
+            `;
+            
+            podium.innerHTML = podiumHTML;
         }
 
         // Initialize
