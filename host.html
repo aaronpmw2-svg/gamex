@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎄 Christmas Catch Clash - Host Screen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎮 Christmas Catch - Player</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
@@ -15,25 +15,22 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: linear-gradient(180deg, #0a0033 0%, #1a0033 50%, #000 100%);
+            background: linear-gradient(135deg, #0a0033 0%, #1a0033 40%, #2d0a4e 70%, #0a0033 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             font-family: 'Press Start 2P', cursive;
             color: #fff;
             overflow: hidden;
+            touch-action: manipulation;
         }
 
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
-            pointer-events: none;
-            z-index: 1000;
-            opacity: 0.3;
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .screen {
@@ -43,404 +40,465 @@
         }
 
         .screen.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Firebase Config Screen */
-        .config-container {
+        /* Join Screen */
+        .join-card {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 0, 40, 0.95));
+            border: 5px solid #00ffff;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px #00ffff, 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .join-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.05), transparent);
+            animation: cardGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes cardGlow {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            50% { transform: translateX(50%) rotate(180deg); }
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: #ff00ff;
+            text-shadow: 0 0 20px #ff00ff;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #ffff00;
+            padding: 16px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            color: #fff;
+            border-radius: 10px;
+            text-align: center;
+            margin: 12px 0;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff0080, #ff00ff, #cc0066);
+            background-size: 200% 200%;
+            animation: buttonGradient 3s ease infinite;
+            border: 4px solid #ff00ff;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            padding: 18px;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 0 30px #ff00ff, 0 5px 20px rgba(255, 0, 255, 0.3);
+            margin-top: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        @keyframes buttonGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: buttonShine 2s ease-in-out infinite;
+        }
+
+        @keyframes buttonShine {
+            0%, 100% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 50px #ff00ff, 0 2px 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .info-text {
+            font-size: 0.7rem;
+            color: #00ffff;
+            margin-top: 25px;
+            line-height: 1.8;
+        }
+
+        .error-text {
+            font-size: 0.8rem;
+            color: #ff0000;
+            margin-top: 20px;
+            line-height: 1.6;
+            padding: 15px;
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+        }
+
+        /* Game Screen - keeping all the same styles from before */
+        #game-screen {
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .game-header {
+            width: 100%;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #00ffff;
+        }
+
+        .player-name {
+            font-size: 0.75rem;
+            color: #00ffff;
+        }
+
+        .score-display {
+            font-size: 1.8rem;
+            color: #ffff00;
+            text-shadow: 0 0 18px #ffff00;
+        }
+
+        .round-banner {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 0, 255, 0.2);
+            border-bottom: 3px solid #ff00ff;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #ff00ff;
+        }
+
+        .game-area {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .falling-item {
+            position: absolute;
+            font-size: 4rem;
+            cursor: pointer;
+            z-index: 100;
+            animation: itemWobble 0.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px currentColor) drop-shadow(0 0 25px currentColor);
+            transition: transform 0.1s;
+        }
+
+        @keyframes itemWobble {
+            0%, 100% { transform: rotate(-10deg) scale(1); }
+            50% { transform: rotate(10deg) scale(1.05); }
+        }
+
+        .falling-item:active {
+            transform: scale(1.4) !important;
+            filter: drop-shadow(0 0 25px currentColor) drop-shadow(0 0 40px currentColor) !important;
+        }
+
+        .falling-item::before {
+            content: '✨';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            font-size: 0.8rem;
+            animation: sparkle 1s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+        }
+
+        .speed-target {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            font-size: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            animation: targetPulse 0.6s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px #ff00ff) drop-shadow(0 0 35px #ff00ff);
+            transition: all 0.1s;
+        }
+
+        @keyframes targetPulse {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg); 
+                filter: drop-shadow(0 0 20px #ff00ff) drop-shadow(0 0 35px #ff00ff);
+            }
+            50% { 
+                transform: scale(1.2) rotate(10deg); 
+                filter: drop-shadow(0 0 30px #ff00ff) drop-shadow(0 0 50px #ff00ff);
+            }
+        }
+
+        .speed-target:active {
+            transform: scale(1.5) !important;
+            filter: drop-shadow(0 0 40px #ffff00) drop-shadow(0 0 60px #ffff00) !important;
+        }
+
+        .speed-target::after {
+            content: '';
+            position: absolute;
+            width: 110%;
+            height: 110%;
+            border: 3px solid #ff00ff;
+            border-radius: 50%;
+            animation: targetRing 1s ease-out infinite;
+        }
+
+        @keyframes targetRing {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 25px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 200, 255, 0.25));
+            border: 3px solid #00ffff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .memory-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: cardShine 3s ease-in-out infinite;
+        }
+
+        @keyframes cardShine {
+            0%, 100% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .memory-card:active {
+            transform: scale(1.1) rotateY(10deg);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+        }
+
+        .memory-card.flipped {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.3), rgba(255, 0, 200, 0.4));
+            border-color: #ff00ff;
+            transform: rotateY(180deg);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .memory-card.matched {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.3), rgba(0, 200, 0, 0.4));
+            border-color: #00ff00;
+            pointer-events: none;
+            animation: matchPulse 0.5s ease-out;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.7);
+        }
+
+        @keyframes matchPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .boss-container {
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
             padding: 20px;
         }
 
-        .config-panel {
-            background: rgba(0, 0, 0, 0.95);
-            border: 6px solid #ff00ff;
-            padding: 50px;
-            border-radius: 20px;
-            box-shadow: 0 0 60px #ff00ff;
-            max-width: 900px;
-            width: 100%;
-        }
-
-        .config-title {
-            font-size: 2rem;
-            color: #ff00ff;
-            text-shadow: 0 0 30px #ff00ff;
+        .boss-sprite {
+            font-size: 10rem;
             margin-bottom: 30px;
-            text-align: center;
+            cursor: pointer;
+            animation: bossFloat 2s ease-in-out infinite;
+            user-select: none;
         }
 
-        .config-instructions {
-            font-size: 0.8rem;
-            line-height: 2;
-            color: #00ff00;
+        @keyframes bossFloat {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-25px) rotate(5deg); }
+        }
+
+        .boss-sprite:active {
+            transform: scale(1.2) !important;
+        }
+
+        .boss-health {
+            width: 100%;
+            max-width: 400px;
             margin: 20px 0;
         }
 
-        .config-input {
+        .health-bar {
             width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 3px solid #00ffff;
-            padding: 15px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.8rem;
-            color: #fff;
-            border-radius: 10px;
-            margin: 10px 0;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid #ff0000;
+            border-radius: 18px;
+            overflow: hidden;
         }
 
-        .config-input:focus {
-            outline: none;
-            border-color: #ff00ff;
-            box-shadow: 0 0 20px #ff00ff;
-        }
-
-        /* Setup Screen */
-        .setup-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .health-fill {
             height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6600);
+            transition: width 0.3s;
         }
 
-        .setup-panel {
-            background: rgba(0, 0, 0, 0.95);
-            border: 6px solid #00ffff;
-            padding: 50px 70px;
-            border-radius: 20px;
-            box-shadow: 0 0 60px #00ffff;
-            max-width: 900px;
+        .health-text {
+            color: #ffff00;
+            margin-top: 12px;
+            font-size: 1.3rem;
             text-align: center;
         }
 
-        h1 {
-            font-size: 3rem;
-            color: #ff00ff;
-            text-shadow: 0 0 30px #ff00ff, 0 0 60px #ff00ff, 5px 5px 0 #00ffff;
-            margin-bottom: 40px;
-            animation: titlePulse 2s ease-in-out infinite;
-        }
-
-        @keyframes titlePulse {
-            0%, 100% { text-shadow: 0 0 30px #ff00ff, 5px 5px 0 #00ffff; }
-            50% { text-shadow: 0 0 60px #ff00ff, 0 0 90px #ff00ff, 5px 5px 0 #00ffff; }
-        }
-
-        .game-code-box {
-            background: rgba(255, 255, 0, 0.1);
-            border: 5px solid #ffff00;
-            padding: 25px;
-            margin: 30px 0;
-            border-radius: 15px;
-        }
-
-        .code-label {
+        .boss-instruction {
             font-size: 1rem;
             color: #00ff00;
-            margin-bottom: 15px;
+            text-align: center;
+            margin-top: 25px;
+            line-height: 1.8;
         }
 
-        .code-value {
-            font-size: 4.5rem;
-            color: #ffff00;
-            text-shadow: 0 0 30px #ffff00;
-            letter-spacing: 0.3em;
-        }
-
-        .player-url {
-            font-size: 0.85rem;
-            color: #00ffff;
-            margin: 25px 0;
-            word-break: break-all;
-        }
-
-        .instructions {
-            font-size: 0.85rem;
-            line-height: 2.2;
-            color: #00ff00;
-            margin: 30px 0;
-            text-align: left;
-        }
-
-        .player-waiting {
-            margin: 35px 0;
-            min-height: 80px;
-        }
-
-        .player-chip {
-            display: inline-block;
-            background: rgba(0, 255, 255, 0.2);
-            border: 3px solid #00ffff;
-            padding: 12px 25px;
-            margin: 8px;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            animation: chipGlow 2s ease-in-out infinite;
-        }
-
-        @keyframes chipGlow {
-            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); }
-            50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.6); }
-        }
-
-        .btn {
-            background: linear-gradient(180deg, #ff0080, #cc0066);
-            border: 5px solid #ff00ff;
-            color: #fff;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1.3rem;
-            padding: 22px 55px;
-            cursor: pointer;
-            border-radius: 12px;
-            box-shadow: 0 0 35px #ff00ff;
-            transition: all 0.2s;
-            margin: 25px;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 55px #ff00ff;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Game Screen */
-        .game-header {
+        .tap-feedback {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 100;
+            font-size: 3rem;
+            pointer-events: none;
+            z-index: 200;
+            animation: feedbackPop 0.8s ease-out forwards;
+            font-weight: bold;
+            text-shadow: 0 0 20px currentColor;
         }
 
-        .hud-item {
+        @keyframes feedbackPop {
+            0% { 
+                opacity: 1; 
+                transform: scale(0.5) translateY(0); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.8) translateY(-30px); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(1) translateY(-80px); 
+            }
+        }
+
+        /* Add particle burst on catch */
+        @keyframes particleBurst {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+        }
+
+        .status-card {
             background: rgba(0, 0, 0, 0.95);
             border: 4px solid #00ffff;
-            padding: 18px 35px;
-            font-size: 1.8rem;
-            border-radius: 12px;
-            box-shadow: 0 0 30px #00ffff;
-        }
-
-        .timer { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
-        .round-name { color: #ffff00; text-shadow: 0 0 20px #ffff00; }
-
-        .leaderboard {
-            position: absolute;
-            right: 20px;
-            top: 110px;
-            width: 380px;
-            background: rgba(0, 0, 0, 0.98);
-            border: 5px solid #ffff00;
-            padding: 25px;
-            border-radius: 18px;
-            box-shadow: 0 0 50px #ffff00;
-            max-height: calc(100vh - 150px);
-            overflow-y: auto;
-        }
-
-        .leaderboard h2 {
-            font-size: 1.4rem;
-            color: #ffff00;
-            text-shadow: 0 0 20px #ffff00;
+            padding: 40px;
+            border-radius: 20px;
             text-align: center;
-            margin-bottom: 25px;
+            box-shadow: 0 0 40px #00ffff;
+            max-width: 420px;
+            width: 90%;
         }
 
-        .player-score {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin: 12px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border: 3px solid #00ff00;
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-
-        .player-score:hover {
-            transform: translateX(-8px);
-            box-shadow: 0 0 20px #00ff00;
-        }
-
-        .score-rank {
-            font-size: 1.4rem;
-            color: #ff00ff;
-            min-width: 65px;
-        }
-
-        .score-name {
-            flex: 1;
-            font-size: 1rem;
-            color: #00ffff;
-        }
-
-        .score-points {
-            font-size: 1.5rem;
-            color: #ffff00;
-            text-shadow: 0 0 12px #ffff00;
-        }
-
-        .player-score.top1 { border-color: #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.5); }
-        .player-score.top2 { border-color: #c0c0c0; }
-        .player-score.top3 { border-color: #cd7f32; }
-
-        .game-area {
-            position: absolute;
-            top: 110px;
-            left: 20px;
-            right: 420px;
-            bottom: 20px;
-            border: 5px solid #00ff00;
-            border-radius: 18px;
-            background: rgba(0, 0, 0, 0.4);
-            box-shadow: inset 0 0 30px rgba(0, 255, 0, 0.2);
-        }
-
-        .round-transition {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            animation: transitionFade 0.5s ease-out;
-        }
-
-        @keyframes transitionFade {
-            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-
-        .round-icon {
-            font-size: 7rem;
-            margin-bottom: 25px;
-            animation: iconBounce 1s ease-in-out infinite;
-        }
-
-        @keyframes iconBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .round-title {
-            font-size: 3.2rem;
-            color: #ff00ff;
-            text-shadow: 0 0 35px #ff00ff;
-            margin-bottom: 18px;
-        }
-
-        .round-desc {
-            font-size: 1.4rem;
+        .status-message {
+            font-size: 0.9rem;
             color: #00ff00;
-            margin-top: 15px;
+            line-height: 2.2;
+            margin: 25px 0;
         }
 
-        /* Falling items */
-        .falling-item {
-            position: absolute;
-            font-size: 3.5rem;
-            animation: itemWobble 0.6s ease-in-out infinite;
-            filter: drop-shadow(0 0 18px currentColor);
-            pointer-events: none;
+        .waiting-message {
+            animation: blink 1.5s ease-in-out infinite;
         }
 
-        @keyframes itemWobble {
-            0%, 100% { transform: rotate(-12deg); }
-            50% { transform: rotate(12deg); }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
 
-        /* Caught popup */
-        .catch-popup {
-            position: absolute;
-            font-size: 2.2rem;
-            font-weight: bold;
-            pointer-events: none;
-            z-index: 300;
-            animation: popFloat 1.2s ease-out forwards;
+        .final-rank {
+            font-size: 2.5rem;
+            margin: 30px 0;
         }
 
-        @keyframes popFloat {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-120px) scale(1.8); }
-        }
-
-        /* End Screen */
-        .end-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            flex-direction: column;
-        }
-
-        .podium-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 35px;
-            margin: 60px 0;
-        }
-
-        .podium {
-            text-align: center;
-            animation: podiumRise 1s ease-out;
-        }
-
-        @keyframes podiumRise {
-            from { transform: translateY(150px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .podium.first { order: 2; animation-delay: 0.6s; }
-        .podium.second { order: 1; animation-delay: 0.3s; }
-        .podium.third { order: 3; animation-delay: 0s; }
-
-        .podium-emoji { font-size: 6rem; margin-bottom: 18px; }
-        .podium-name { font-size: 1.6rem; color: #ffff00; margin: 12px 0; }
-        .podium-score { font-size: 2.2rem; color: #00ff00; text-shadow: 0 0 22px #00ff00; }
-
-        .podium-stand {
-            background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05));
-            border: 5px solid;
-            border-radius: 18px 18px 0 0;
-            padding: 28px;
-            margin-top: 25px;
-        }
-
-        .podium.first .podium-stand {
-            height: 240px;
-            border-color: #ffd700;
-            box-shadow: 0 0 45px rgba(255, 215, 0, 0.7);
-        }
-
-        .podium.second .podium-stand {
-            height: 185px;
-            border-color: #c0c0c0;
-        }
-
-        .podium.third .podium-stand {
-            height: 130px;
-            border-color: #cd7f32;
+        .final-score {
+            font-size: 3rem;
+            color: #ffff00;
+            text-shadow: 0 0 25px #ffff00;
+            margin: 25px 0;
         }
 
         .connection-status {
             position: fixed;
             top: 10px;
-            right: 10px;
+            left: 10px;
             background: rgba(0, 0, 0, 0.9);
             border: 3px solid #00ff00;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 10px;
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             z-index: 10000;
         }
 
@@ -448,90 +506,73 @@
             border-color: #ff0000;
             color: #ff0000;
         }
+
+        .sound-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #ffff00;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            z-index: 10000;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sound-toggle:active {
+            transform: scale(0.9);
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.3rem; }
+            .falling-item { font-size: 3rem; }
+            .speed-target { width: 75px; height: 75px; font-size: 3rem; }
+            .memory-card { font-size: 2.2rem; }
+            .boss-sprite { font-size: 8rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="scanlines"></div>
-    <div class="connection-status" id="connection-status">🟢 CONNECTED</div>
+    <div class="connection-status" id="connection-status">🟡 INIT</div>
+    <div class="sound-toggle" id="sound-toggle" onclick="toggleSound()" title="Toggle Sound">🔊</div>
 
-    <!-- Firebase Config Screen -->
-    <div id="config-screen" class="screen active">
-        <div class="config-container">
-            <div class="config-panel">
-                <div class="config-title">🔧 FIREBASE SETUP 🔧</div>
-                
-                <div class="config-instructions">
-                    📋 FOLLOW THESE STEPS:<br><br>
-                    1️⃣ Go to: <strong style="color: #ffff00;">https://console.firebase.google.com</strong><br>
-                    2️⃣ Click "Add Project" or use existing project<br>
-                    3️⃣ Click "Realtime Database" → "Create Database"<br>
-                    4️⃣ Choose "Start in test mode" → Enable<br>
-                    5️⃣ Go to Project Settings (⚙️) → Your apps → Web app<br>
-                    6️⃣ Copy the config values and paste below:<br><br>
-                    
-                    <strong style="color: #ff00ff;">PASTE YOUR FIREBASE CONFIG:</strong>
-                </div>
+    <!-- Join Screen -->
+    <div id="join-screen" class="screen active">
+        <div class="join-card">
+            <h1>🎄 TEAM 8's Up to Snow Good 🎄</h1>
+            
+            <input 
+                type="text" 
+                id="player-name" 
+                placeholder="YOUR NAME"
+                maxlength="15"
+            >
 
-                <textarea 
-                    id="firebase-config" 
-                    class="config-input" 
-                    placeholder='Paste entire firebaseConfig object here, e.g.:
-{
-  apiKey: "AIza...",
-  authDomain: "...",
-  databaseURL: "https://...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
-}'
-                    rows="10"
-                ></textarea>
+            <input 
+                type="text" 
+                id="game-code" 
+                placeholder="GAME CODE"
+                maxlength="10"
+            >
 
-                <button class="btn" onclick="initializeFirebase()">✅ INITIALIZE FIREBASE</button>
-
-                <div class="config-instructions" style="margin-top: 30px; font-size: 0.7rem; color: #00ffff;">
-                    💡 TIP: This is one-time setup. Your config will be saved!<br>
-                    🔒 Safe: Firebase is free and secure for this use case.
-                </div>
-            </div>
+            <button class="btn" onclick="joinGame()">JOIN GAME</button>
+            
+            <div id="error-message" class="error-text" style="display: none;"></div>
         </div>
     </div>
 
-    <!-- Setup Screen -->
-    <div id="setup-screen" class="screen">
-        <div class="setup-container">
-            <div class="setup-panel">
-                <h1>🎄 CHRISTMAS CATCH CLASH 🎄</h1>
-                
-                <div class="game-code-box">
-                    <div class="code-label">⚡ GAME CODE ⚡</div>
-                    <div class="code-value" id="game-code-display">XMAS</div>
-                </div>
-
-                <div class="player-url">
-                    Players join at: <strong id="player-url">player.html</strong>
-                    <br>
-                    <button class="btn" onclick="copyPlayerUrl()" style="font-size: 0.8rem; padding: 12px 25px; margin-top: 15px;">
-                        📋 COPY PLAYER LINK
-                    </button>
-                </div>
-
-                <div class="instructions">
-                    📱 HOW TO PLAY:<br>
-                    1️⃣ Click "COPY PLAYER LINK" button below<br>
-                    2️⃣ Share that link with players in Teams chat<br>
-                    3️⃣ Players click link on their phones (auto-connects!)<br>
-                    4️⃣ Players enter name + game code shown above<br>
-                    5️⃣ Start game and have fun!
-                </div>
-
-                <div class="player-waiting">
-                    <div style="color: #00ff00; margin-bottom: 18px; font-size: 1.1rem;">PLAYERS JOINED: <span id="player-count">0</span></div>
-                    <div id="player-list"></div>
-                </div>
-
-                <button class="btn" onclick="startGame()" id="start-btn">▶ START GAME ◀</button>
+    <!-- Waiting Screen -->
+    <div id="waiting-screen" class="screen">
+        <div class="status-card">
+            <h1 class="waiting-message">⏳ WAITING ⏳</h1>
+            <div class="status-message" id="waiting-message">
+                Waiting for host to start the game...
+            </div>
+            <div class="final-score" id="waiting-score">0</div>
+            <div class="info-text">
+                Get ready!
             </div>
         </div>
     </div>
@@ -539,50 +580,43 @@
     <!-- Game Screen -->
     <div id="game-screen" class="screen">
         <div class="game-header">
-            <div class="hud-item timer" id="timer">1:30</div>
-            <div class="hud-item round-name" id="round-display">ROUND 1</div>
+            <div class="player-name" id="player-name-display"></div>
+            <div class="score-display" id="game-score">0</div>
         </div>
-
+        <div class="round-banner" id="round-banner">ROUND 1</div>
         <div class="game-area" id="game-area"></div>
-
-        <div class="leaderboard">
-            <h2>🏆 LIVE SCORES 🏆</h2>
-            <div id="leaderboard-content"></div>
-        </div>
     </div>
 
     <!-- End Screen -->
     <div id="end-screen" class="screen">
-        <div class="end-container">
-            <div class="setup-panel">
-                <h1>🎉 GAME OVER! 🎉</h1>
-                
-                <div style="font-size: 1.5rem; color: #ffff00; margin: 35px 0; text-shadow: 0 0 25px #ffff00; line-height: 1.6;">
-                    🎄 WISHING THE BEST TEAM EVER<br>A FAB CHRISTMAS AND BRILLIANT '26! 🎄
-                </div>
-
-                <div class="podium-container" id="podium"></div>
-
-                <button class="btn" onclick="location.reload()">↻ PLAY AGAIN</button>
+        <div class="status-card">
+            <h1>🎉 GAME OVER! 🎉</h1>
+            <div class="final-rank" id="final-rank">🥇</div>
+            <div class="final-score" id="final-score">0 PTS</div>
+            <div class="status-message">
+                🎄 MERRY CHRISTMAS! 🎄<br>
+                Check the main screen for full rankings!
             </div>
+            <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
         </div>
     </div>
 
     <script>
-        // FIREBASE & GAME STATE
+        // Get database URL from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const dbUrl = urlParams.get('db');
+        
         let database = null;
         let gameRef = null;
-        let gameCode = 'XMAS' + Math.random().toString(36).substr(2, 4).toUpperCase();
         
-        const ROUND_DURATION = 90;
-        let gameState = {
-            players: {},
-            isRunning: false,
-            currentRound: 0,
-            timeLeft: ROUND_DURATION,
-            itemId: 0,
-            activeItems: {},
-            gameOver: false
+        const PLAYER_ID = localStorage.getItem('playerId') || 
+            'player_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('playerId', PLAYER_ID);
+
+        let playerState = {
+            id: PLAYER_ID,
+            name: '',
+            score: 0
         };
 
         const ROUNDS = [
@@ -592,709 +626,639 @@
             { name: "CARA'S DELI COUNTER", icon: '🎟️', type: 'deli', duration: 15 }
         ];
 
-        const CATCH_ITEMS = [
-            // Good items (green circles) - worth +10 points
-            { image: 'Aaron.jpg', name: 'Aaron', points: 10, good: true },
-            { image: 'Cricket.jpg', name: 'Cricket', points: 10, good: true },
-            { image: 'Kelly.jpg', name: 'Kelly', points: 10, good: true },
-            { image: 'Philippa.jpg', name: 'Philippa', points: 10, good: true },
-            { image: 'Mi-cool.jpg', name: 'Mi-cool', points: 10, good: true },
-            // Bad items (red circles) - lose -15 points  
-            { image: 'Aaron.jpg', name: 'Aaron', points: -15, good: false },
-            { image: 'Cara.jpg', name: 'Cara', points: -15, good: false },
-            { image: 'Cricket.jpg', name: 'Cricket', points: -15, good: false },
-            { image: 'Kelly.jpg', name: 'Kelly', points: -15, good: false },
-            { image: 'Philippa.jpg', name: 'Philippa', points: -15, good: false },
-            { image: 'Mi-cool.jpg', name: 'Mi-cool', points: -15, good: false }
-        ];
+        let activeItems = new Map();
+        let memoryFlipped = [];
+        let memoryCards = [];
+        let currentRound = -1;
+        
+        // Sound and Vibration Settings
+        let soundEnabled = true;
+        let audioContext = null;
 
-        let spawnInterval = null;
-        let timerInterval = null;
-
-        // Check if Firebase config exists
-        function checkFirebaseConfig() {
-            const saved = localStorage.getItem('firebaseConfig');
-            if (saved) {
-                try {
-                    const config = JSON.parse(saved);
-                    initFirebase(config);
-                    return true;
-                } catch (e) {
-                    console.error('Invalid saved config:', e);
-                }
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
-            return false;
         }
 
-        function initializeFirebase() {
-            const configText = document.getElementById('firebase-config').value.trim();
-            if (!configText) {
-                alert('Please paste your Firebase config!');
+        // Play sound effect
+        function playSound(type) {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Different sounds for different actions
+            if (type === 'catch-good') {
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            } else if (type === 'catch-bad') {
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            } else if (type === 'tap') {
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+            } else if (type === 'match') {
+                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1500, audioContext.currentTime + 0.15);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            } else if (type === 'countdown') {
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+            } else if (type === 'go') {
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            }
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // Vibrate phone
+        function vibrate(pattern) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle');
+            if (btn) {
+                btn.textContent = soundEnabled ? '🔊' : '🔇';
+            }
+        }
+
+        // Initialize Firebase immediately
+        window.onload = function() {
+            if (!dbUrl) {
+                showError('❌ Invalid player link!<br><br>Please use the link from the host screen.<br><br>It should look like:<br>...player.html?db=https://...');
                 return;
             }
 
-            try {
-                // Parse the config (handle both JSON and JS object format)
-                let config;
-                if (configText.startsWith('{')) {
-                    // Try as JSON first
-                    try {
-                        config = JSON.parse(configText);
-                    } catch {
-                        // If JSON fails, try eval (for JS object format)
-                        config = eval('(' + configText + ')');
-                    }
-                } else {
-                    config = eval('(' + configText + ')');
-                }
-
-                // Validate required fields
-                if (!config.apiKey || !config.databaseURL) {
-                    throw new Error('Missing required fields (apiKey or databaseURL)');
-                }
-
-                // Save config
-                localStorage.setItem('firebaseConfig', JSON.stringify(config));
-
-                // Initialize
-                initFirebase(config);
-            } catch (e) {
-                alert('Error parsing config: ' + e.message + '\n\nMake sure you copied the entire firebaseConfig object!');
-                console.error('Config error:', e);
+            // Clean the URL (remove trailing slash and any paths)
+            let cleanUrl = dbUrl.trim();
+            if (cleanUrl.endsWith('/')) {
+                cleanUrl = cleanUrl.slice(0, -1);
             }
-        }
+            
+            // Remove any paths after .com (Firebase URLs should end with .com or .io)
+            const match = cleanUrl.match(/(https:\/\/[^\/]+\.(?:firebaseio\.com|googleapis\.com))/);
+            if (match) {
+                cleanUrl = match[1];
+            }
 
-        function initFirebase(config) {
+            console.log('Connecting to:', cleanUrl);
+            document.getElementById('connection-status').textContent = '🟡 CONNECTING';
+
             try {
+                const config = {
+                    databaseURL: cleanUrl
+                };
+                
                 firebase.initializeApp(config);
                 database = firebase.database();
                 
-                // Save config to Firebase so players can access it
-                database.ref('_config').set({
-                    apiKey: config.apiKey,
-                    authDomain: config.authDomain,
-                    databaseURL: config.databaseURL,
-                    projectId: config.projectId,
-                    storageBucket: config.storageBucket,
-                    messagingSenderId: config.messagingSenderId,
-                    appId: config.appId
-                }).then(() => {
-                    console.log('Config saved to Firebase for players');
+                // Test connection
+                database.ref('.info/connected').on('value', (snap) => {
+                    const status = document.getElementById('connection-status');
+                    if (snap.val() === true) {
+                        status.textContent = '🟢 OK';
+                        status.classList.remove('disconnected');
+                    } else {
+                        status.textContent = '🔴 OFF';
+                        status.classList.add('disconnected');
+                    }
                 });
-                
-                document.getElementById('config-screen').classList.remove('active');
-                document.getElementById('setup-screen').classList.add('active');
-                
-                setupGame();
-                updateConnectionStatus();
+
+                console.log('Firebase initialized successfully');
             } catch (e) {
-                alert('Firebase initialization failed: ' + e.message);
                 console.error('Firebase error:', e);
-                localStorage.removeItem('firebaseConfig');
+                showError('Connection failed!<br><br>' + e.message + '<br><br>Please ask the host for a new link.');
             }
+        };
+
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.innerHTML = message;
+            errorEl.style.display = 'block';
         }
 
-        function updateConnectionStatus() {
-            const connectedRef = database.ref('.info/connected');
-            connectedRef.on('value', (snap) => {
-                const status = document.getElementById('connection-status');
-                if (snap.val() === true) {
-                    status.textContent = '🟢 CONNECTED';
-                    status.classList.remove('disconnected');
-                } else {
-                    status.textContent = '🔴 DISCONNECTED';
-                    status.classList.add('disconnected');
-                }
-            });
-        }
+        function joinGame() {
+            const name = document.getElementById('player-name').value.trim();
+            const code = document.getElementById('game-code').value.trim().toUpperCase();
 
-        function setupGame() {
-            document.getElementById('game-code-display').textContent = gameCode;
-            
-            // Generate player URL with database parameter
-            if (window.location.href.includes('http')) {
-                const baseUrl = window.location.href.replace('host.html', 'player.html');
-                const config = JSON.parse(localStorage.getItem('firebaseConfig'));
-                const playerUrl = baseUrl + '?db=' + encodeURIComponent(config.databaseURL);
-                
-                // Store full URL for copying
-                window.fullPlayerUrl = playerUrl;
-                
-                document.getElementById('player-url').textContent = playerUrl;
-                
-                // Make it shorter for display if too long
-                if (playerUrl.length > 80) {
-                    const shortUrl = playerUrl.substring(0, 80) + '...';
-                    document.getElementById('player-url').textContent = shortUrl;
-                    document.getElementById('player-url').title = playerUrl; // Full URL on hover
-                }
-            }
-
-            // Create game session in Firebase
-            gameRef = database.ref('games/' + gameCode);
-            
-            // Initialize game state
-            gameRef.set({
-                gameCode: gameCode,
-                players: {},
-                isRunning: false,
-                currentRound: 0,
-                roundData: ROUNDS[0],
-                activeItems: {},
-                timestamp: Date.now()
-            });
-
-            // Listen for players joining
-            gameRef.child('players').on('value', (snapshot) => {
-                const players = snapshot.val() || {};
-                gameState.players = players;
-                updatePlayerList();
-                updateLeaderboard();
-            });
-
-            // Listen for caught items
-            gameRef.child('caughtItems').on('child_added', (snapshot) => {
-                const caught = snapshot.val();
-                handleCatch(caught);
-                // Remove processed item
-                snapshot.ref.remove();
-            });
-        }
-
-        function copyPlayerUrl() {
-            const url = window.fullPlayerUrl || document.getElementById('player-url').textContent;
-            
-            // Try modern clipboard API first
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(url).then(() => {
-                    alert('✅ Player link copied!\n\nShare this link with players:\n' + url);
-                }).catch(() => {
-                    fallbackCopy(url);
-                });
-            } else {
-                fallbackCopy(url);
-            }
-        }
-
-        function fallbackCopy(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                alert('✅ Player link copied!\n\nShare this link with players:\n' + text);
-            } catch (err) {
-                alert('📋 Copy this link:\n\n' + text);
-            }
-            document.body.removeChild(textarea);
-        }
-
-        function updatePlayerList() {
-            const list = document.getElementById('player-list');
-            const players = Object.values(gameState.players);
-            
-            document.getElementById('player-count').textContent = players.length;
-            
-            if (players.length === 0) {
-                list.innerHTML = '<div class="player-chip">Waiting for players...</div>';
-            } else {
-                list.innerHTML = players
-                    .map(p => `<div class="player-chip">👤 ${p.name}</div>`)
-                    .join('');
-            }
-        }
-
-        function handleCatch(caught) {
-            if (!gameState.activeItems[caught.itemId]) return;
-
-            const itemData = gameState.activeItems[caught.itemId];
-            const player = gameState.players[caught.playerId];
-            
-            if (player) {
-                player.score = (player.score || 0) + itemData.points;
-                
-                // Update player score in Firebase
-                gameRef.child('players/' + caught.playerId + '/score').set(player.score);
-                
-                // Show popup
-                const popup = document.createElement('div');
-                popup.className = 'catch-popup';
-                popup.textContent = `${player.name} ${itemData.points > 0 ? '+' : ''}${itemData.points}`;
-                popup.style.left = itemData.x + '%';
-                popup.style.top = itemData.y + 'px';
-                popup.style.color = itemData.points > 0 ? '#00ff00' : '#ff0000';
-                popup.style.textShadow = `0 0 20px ${itemData.points > 0 ? '#00ff00' : '#ff0000'}`;
-                document.getElementById('game-area').appendChild(popup);
-                setTimeout(() => popup.remove(), 1200);
-
-                // Remove item
-                const itemEl = document.querySelector(`[data-item-id="${caught.itemId}"]`);
-                if (itemEl) itemEl.remove();
-                delete gameState.activeItems[caught.itemId];
-                
-                updateLeaderboard();
-            }
-        }
-
-        function updateLeaderboard() {
-            const sorted = Object.values(gameState.players).sort((a, b) => (b.score || 0) - (a.score || 0));
-            document.getElementById('leaderboard-content').innerHTML = sorted
-                .map((p, i) => `
-                    <div class="player-score ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}">
-                        <span class="score-rank">#${i + 1}</span>
-                        <span class="score-name">${p.name}</span>
-                        <span class="score-points">${p.score || 0}</span>
-                    </div>
-                `).join('');
-        }
-
-        function startGame() {
-            if (Object.keys(gameState.players).length === 0) {
-                alert('Wait for at least one player to join!');
+            if (!name || name.length < 2) {
+                alert('Please enter your name!');
                 return;
             }
 
-            gameState.isRunning = true;
-            gameState.currentRound = 0;
-            
-            gameRef.update({
-                isRunning: true,
-                currentRound: 0,
-                timeLeft: ROUND_DURATION
+            if (!code || code.length < 4) {
+                alert('Please enter the game code!');
+                return;
+            }
+
+            if (!database) {
+                showError('Not connected! Please refresh and try again.');
+                return;
+            }
+
+            playerState.name = name;
+            document.getElementById('player-name-display').textContent = name;
+
+            // Check if game exists
+            gameRef = database.ref('games/' + code);
+            gameRef.once('value').then((snapshot) => {
+                if (!snapshot.exists()) {
+                    alert('Game not found! Check the code and try again.');
+                    return;
+                }
+
+                // Join the game
+                gameRef.child('players/' + PLAYER_ID).set({
+                    id: PLAYER_ID,
+                    name: name,
+                    score: 0,
+                    joinedAt: Date.now()
+                });
+
+                document.getElementById('waiting-message').textContent = 
+                    `Welcome, ${name}! Waiting for host...`;
+
+                showScreen('waiting-screen');
+                startListening();
+            }).catch((error) => {
+                showError('Error joining: ' + error.message);
             });
-
-            document.getElementById('setup-screen').classList.remove('active');
-            document.getElementById('game-screen').classList.add('active');
-
-            startRound(0);
         }
 
-        function startRound(roundIndex) {
-            gameState.currentRound = roundIndex;
-            const round = ROUNDS[roundIndex];
-            gameState.timeLeft = round.duration;
-            
-            document.getElementById('round-display').textContent = 
-                `ROUND ${roundIndex + 1}: ${round.name}`;
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
 
-            // Show instruction screen
+        function updateScoreDisplay() {
+            document.getElementById('game-score').textContent = playerState.score;
+            document.getElementById('waiting-score').textContent = playerState.score;
+            document.getElementById('final-score').textContent = playerState.score + ' PTS';
+        }
+
+        function startListening() {
+            // Listen for game start
+            gameRef.child('isRunning').on('value', (snapshot) => {
+                const isRunning = snapshot.val();
+                if (isRunning && document.getElementById('waiting-screen').classList.contains('active')) {
+                    showScreen('game-screen');
+                }
+            });
+
+            // Listen for game over
+            gameRef.child('gameOver').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    showEndScreen();
+                }
+            });
+
+            // Listen for current round
+            gameRef.child('currentRound').on('value', (snapshot) => {
+                const round = snapshot.val();
+                if (round !== null && round !== currentRound) {
+                    currentRound = round;
+                    loadRound(round);
+                }
+            });
+
+            // Listen for round data
+            gameRef.child('roundData').on('value', (snapshot) => {
+                const roundData = snapshot.val();
+                if (roundData) {
+                    document.getElementById('round-banner').textContent = 
+                        `ROUND ${currentRound + 1}: ${roundData.name}`;
+                }
+            });
+
+            // Listen for player score updates
+            gameRef.child('players/' + PLAYER_ID + '/score').on('value', (snapshot) => {
+                const score = snapshot.val() || 0;
+                playerState.score = score;
+                updateScoreDisplay();
+            });
+
+            // Listen for active items (catch & speed rounds)
+            gameRef.child('activeItems').on('value', (snapshot) => {
+                const items = snapshot.val() || {};
+                syncItems(items);
+            });
+        }
+
+        function loadRound(roundIndex) {
             const gameArea = document.getElementById('game-area');
-            
+            gameArea.innerHTML = '';
+            activeItems.clear();
+            memoryFlipped = [];
+
+            // Initialize audio if not already
+            if (!audioContext) initAudio();
+
+            // Show instruction screen with countdown
+            const round = ROUNDS[roundIndex];
             let instructionText = '';
-            if (round.type === 'catch') {
-                instructionText = 'TAP THE FALLING ELVES!<br>First tap wins points!<br>Avoid bad items!';
-            } else if (round.type === 'memory') {
-                instructionText = 'FIND MATCHING PAIRS!<br>+15 points per match!';
-            } else if (round.type === 'speed') {
-                instructionText = 'TAP TARGETS FAST!<br>First to tap wins +20 points!<br>Ready your fingers!';
-            } else if (round.type === 'deli') {
-                instructionText = 'HIT CARA AS MANY TIMES AS YOU CAN<br>TO GET THE FIRST TICKET IN THE QUEUE!<br>Most taps wins!';
-            }
             
+            if (round.type === 'catch') {
+                instructionText = 'TAP FALLING ELVES!<br>First tap wins!';
+            } else if (round.type === 'memory') {
+                instructionText = 'FIND MATCHING PAIRS!<br>+15 per match';
+            } else if (round.type === 'speed') {
+                instructionText = 'TAP TARGETS FAST!<br>+20 per hit';
+            } else if (round.type === 'deli') {
+                instructionText = 'TAP CARA AS FAST AS YOU CAN!<br>The most taps wins!';
+            }
+
             gameArea.innerHTML = `
-                <div class="round-transition">
-                    <div class="round-icon">${round.icon}</div>
-                    <div class="round-title">${round.name}</div>
-                    <div class="round-desc" style="font-size: 1.2rem; line-height: 1.8;">${instructionText}</div>
-                    <div class="round-desc" style="margin-top: 20px; font-size: 1.8rem; color: #ffff00;">Starting in <span id="countdown">15</span>...</div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">${round.icon}</div>
+                    <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff; margin-bottom: 20px;">${round.name}</div>
+                    <div style="font-size: 1rem; color: #00ff00; line-height: 1.8;">${instructionText}</div>
+                    <div style="font-size: 2.5rem; color: #ffff00; margin-top: 30px; text-shadow: 0 0 25px #ffff00;" id="player-countdown">15</div>
                 </div>
             `;
 
-            gameRef.update({
-                currentRound: roundIndex,
-                roundData: round,
-                timeLeft: round.duration
-            });
-
-            // Countdown before starting - 15 seconds for players to read!
+            // Countdown with sounds - 15 seconds for reading time!
             let countdown = 15;
             const countdownInterval = setInterval(() => {
                 countdown--;
-                const countdownEl = document.getElementById('countdown');
+                const countdownEl = document.getElementById('player-countdown');
                 if (countdownEl) {
                     if (countdown > 0) {
                         countdownEl.textContent = countdown;
+                        // Only play sound at key moments (10, 5, 3, 2, 1)
+                        if (countdown === 10 || countdown === 5 || countdown <= 3) {
+                            playSound('countdown');
+                            vibrate(50);
+                        }
                     } else {
                         countdownEl.textContent = 'GO!';
+                        playSound('go');
+                        vibrate(100);
                     }
                 }
                 
                 if (countdown < 0) {
                     clearInterval(countdownInterval);
-                    gameArea.innerHTML = '';
-                    startTimer();
-                    
-                    if (round.type === 'catch') {
-                        startCatchGame();
-                    } else if (round.type === 'memory') {
-                        startMemoryGameHost(); // Show message on host screen
-                    } else if (round.type === 'speed') {
-                        startSpeedGame();
-                        startSpeedGameHost(); // Show message on host screen
-                    } else if (round.type === 'deli') {
-                        startDeliGame();
+                    // Setup round after countdown
+                    setTimeout(() => {
+                        gameArea.innerHTML = '';
+                        
+                        if (roundIndex === 1) {
+                            setupMemoryGame();
+                        } else if (roundIndex === 3) {
+                            setupDeliGame();
+                        }
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        function syncItems(items) {
+            const gameArea = document.getElementById('game-area');
+            const serverItems = Object.entries(items);
+
+            // Round 0 (Catch) or Round 2 (Speed)
+            if (currentRound === 0 || currentRound === 2) {
+                // Remove items that no longer exist
+                activeItems.forEach((itemEl, itemId) => {
+                    if (!items[itemId]) {
+                        itemEl.remove();
+                        activeItems.delete(itemId);
                     }
-                }
-            }, 1000);
+                });
+
+                // Add new items or update existing ones
+                serverItems.forEach(([itemId, itemData]) => {
+                    if (!activeItems.has(itemId)) {
+                        addItem(itemId, itemData);
+                    } else {
+                        // Update position of existing items (for falling animation)
+                        const itemEl = activeItems.get(itemId);
+                        if (currentRound === 0 && itemEl) {
+                            // Update Y position for falling items
+                            itemEl.style.top = itemData.y + 'px';
+                        }
+                    }
+                });
+            }
         }
 
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                gameState.timeLeft--;
-                const mins = Math.floor(gameState.timeLeft / 60);
-                const secs = gameState.timeLeft % 60;
-                document.getElementById('timer').textContent = 
-                    `${mins}:${secs.toString().padStart(2, '0')}`;
-
-                gameRef.update({ timeLeft: gameState.timeLeft });
-
-                if (gameState.timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    clearInterval(spawnInterval);
-                    nextRound();
-                }
-            }, 1000);
-        }
-
-        function startCatchGame() {
-            spawnCatchItem();
-            spawnInterval = setInterval(() => spawnCatchItem(), 600); // Faster spawning: 600ms (was 900ms)
-        }
-
-        function spawnCatchItem() {
-            const item = CATCH_ITEMS[Math.floor(Math.random() * CATCH_ITEMS.length)];
-            const itemId = ++gameState.itemId;
-            
-            const itemData = {
-                id: itemId,
-                image: item.image,
-                name: item.name,
-                points: item.points,
-                good: item.good,
-                x: Math.random() * 85 + 5,
-                y: -50
-            };
-
-            gameState.activeItems[itemId] = itemData;
-
+        function addItem(itemId, itemData) {
+            const gameArea = document.getElementById('game-area');
             const itemEl = document.createElement('div');
-            itemEl.className = 'falling-item';
             
-            // Create image element for team photos
-            const img = document.createElement('img');
-            img.src = itemData.image;
-            img.style.width = '80px';
-            img.style.height = '80px';
-            img.style.borderRadius = '50%';
-            img.style.border = item.good ? '4px solid #00ff00' : '4px solid #ff0000';
-            img.style.boxShadow = item.good ? '0 0 20px #00ff00' : '0 0 20px #ff0000';
-            
-            // Handle image loading errors
-            img.onerror = function() {
-                console.error('Failed to load image:', itemData.image);
-                itemEl.textContent = item.good ? '✅' : '❌';
-                itemEl.style.fontSize = '4rem';
-            };
-            
-            itemEl.appendChild(img);
-            
-            itemEl.style.left = itemData.x + '%';
-            itemEl.style.top = itemData.y + 'px';
-            itemEl.dataset.itemId = itemId;
-            document.getElementById('game-area').appendChild(itemEl);
-
-            // Update Firebase with initial position
-            gameRef.child('activeItems/' + itemId).set(itemData);
-
-            // Animate fall - MUCH FASTER!
-            let pos = -50;
-            const fallSpeed = 4 + Math.random() * 3; // Faster: 4-7px per frame (was 2.5-4)
-            const fallInterval = setInterval(() => {
-                pos += fallSpeed;
-                itemEl.style.top = pos + 'px';
-                itemData.y = pos;
-
-                // Update Firebase for smooth sync
-                if (Math.random() < 0.3) {
-                    gameRef.child('activeItems/' + itemId + '/y').set(pos);
+            if (currentRound === 0) {
+                // Catch game - falling items (all elf photos with red or green circles)
+                itemEl.className = 'falling-item';
+                
+                // All items are now team photos
+                const img = document.createElement('img');
+                img.src = itemData.image;
+                img.style.width = '90px'; // Bigger! (was 70px)
+                img.style.height = '90px';
+                img.style.borderRadius = '50%';
+                img.style.border = itemData.good ? '4px solid #00ff00' : '4px solid #ff0000';
+                img.style.boxShadow = itemData.good ? '0 0 20px #00ff00' : '0 0 20px #ff0000';
+                img.style.pointerEvents = 'none';
+                img.style.animation = 'elfPulse 0.8s ease-in-out infinite';
+                
+                // Handle image loading errors
+                img.onerror = function() {
+                    console.error('Failed to load image:', itemData.image);
+                    // Show emoji fallback
+                    itemEl.textContent = itemData.good ? '✅' : '❌';
+                    itemEl.style.fontSize = '4rem';
+                };
+                
+                itemEl.appendChild(img);
+                
+                // Add pulsing animation style
+                if (!document.getElementById('elf-pulse-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'elf-pulse-style';
+                    style.textContent = `
+                        @keyframes elfPulse {
+                            0%, 100% { transform: scale(1); }
+                            50% { transform: scale(1.15); }
+                        }
+                    `;
+                    document.head.appendChild(style);
                 }
-
-                if (pos > window.innerHeight - 150) {
-                    clearInterval(fallInterval);
-                    delete gameState.activeItems[itemId];
-                    itemEl.remove();
-                    gameRef.child('activeItems/' + itemId).remove();
+                
+                itemEl.style.left = itemData.x + '%';
+                itemEl.style.top = itemData.y + 'px';
+            } else if (currentRound === 2) {
+                // Speed game - elf photos as targets!
+                itemEl.className = 'speed-target';
+                
+                if (itemData.image) {
+                    // Use elf photo
+                    const img = document.createElement('img');
+                    img.src = itemData.image;
+                    img.style.width = '80px';
+                    img.style.height = '80px';
+                    img.style.borderRadius = '50%';
+                    img.style.border = '4px solid #ff00ff';
+                    img.style.boxShadow = '0 0 20px #ff00ff';
+                    img.style.pointerEvents = 'none';
+                    img.onerror = function() {
+                        itemEl.textContent = '🎯';
+                        itemEl.style.fontSize = '4rem';
+                    };
+                    itemEl.appendChild(img);
+                } else {
+                    // Fallback to emoji
+                    itemEl.textContent = itemData.emoji || '🎯';
                 }
-            }, 20);
+                
+                itemEl.style.left = itemData.x + '%';
+                itemEl.style.top = itemData.y + '%';
+            }
+
+            itemEl.addEventListener('click', () => catchItem(itemId, itemData));
+            itemEl.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                catchItem(itemId, itemData);
+            });
+
+            gameArea.appendChild(itemEl);
+            activeItems.set(itemId, itemEl);
         }
 
-        function startSpeedGame() {
-            spawnSpeedTarget();
-            spawnInterval = setInterval(() => spawnSpeedTarget(), 500); // Faster: 500ms (was 700ms)
+        function catchItem(itemId, itemData) {
+            const itemEl = activeItems.get(itemId);
+            if (!itemEl) return;
+
+            // Initialize audio on first interaction
+            if (!audioContext) initAudio();
+
+            // Play sound and vibrate
+            if (itemData.points > 0) {
+                playSound('catch-good');
+                vibrate(50); // Short vibration for good items
+            } else {
+                playSound('catch-bad');
+                vibrate([100, 50, 100]); // Pattern for bad items
+            }
+
+            // Send catch to Firebase
+            gameRef.child('caughtItems').push({
+                itemId: itemId,
+                playerId: PLAYER_ID,
+                timestamp: Date.now()
+            });
+
+            // Show feedback
+            showFeedback(itemEl, '✓');
+
+            // Remove item locally
+            itemEl.remove();
+            activeItems.delete(itemId);
         }
 
-        function startDeliGame() {
-            // Deli Counter - players tap Cara as many times as possible
-            // No health bar, Cara never disappears, most taps wins
+        // Memory Game
+        function setupMemoryGame() {
+            const gameArea = document.getElementById('game-area');
+            
+            // More icons for harder game - 12 pairs (24 cards)
+            const icons = ['🎁', '⭐', '🎄', '🍬', '❄️', '🔔', '🎅', '🦌', '🎪', '🎺', '🎻', '🎸'];
+            memoryCards = [...icons, ...icons].sort(() => Math.random() - 0.5);
+
+            const gridHtml = `
+                <div class="memory-grid" style="grid-template-columns: repeat(4, 1fr); max-width: 500px; gap: 8px; padding: 15px;">
+                    ${memoryCards.map((icon, index) => `
+                        <div class="memory-card" data-card-id="${index}" data-icon="${icon}" style="font-size: 2.2rem;">
+                            ❓
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            gameArea.innerHTML = gridHtml;
+
+            // Add click handlers
+            document.querySelectorAll('.memory-card').forEach(card => {
+                const cardId = parseInt(card.dataset.cardId);
+                card.addEventListener('click', () => flipCard(cardId, card));
+                card.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    flipCard(cardId, card);
+                });
+            });
+        }
+
+        function flipCard(cardId, cardEl) {
+            if (memoryFlipped.length >= 2) return;
+            if (cardEl.classList.contains('matched')) return;
+            if (cardEl.classList.contains('flipped')) return;
+
+            // Initialize audio if not already
+            if (!audioContext) initAudio();
+            
+            // Play flip sound
+            playSound('tap');
+            vibrate(20);
+
+            const icon = cardEl.dataset.icon;
+            cardEl.textContent = icon;
+            cardEl.classList.add('flipped');
+            memoryFlipped.push({ id: cardId, icon: icon, el: cardEl });
+
+            if (memoryFlipped.length === 2) {
+                setTimeout(checkMemoryMatch, 800);
+            }
+        }
+
+        function checkMemoryMatch() {
+            const [first, second] = memoryFlipped;
+
+            if (first.icon === second.icon) {
+                // Match!
+                first.el.classList.add('matched');
+                second.el.classList.add('matched');
+                
+                // Play match sound and vibrate
+                playSound('match');
+                vibrate(100);
+                
+                // Award points locally and sync to Firebase
+                playerState.score += 15;
+                gameRef.child('players/' + PLAYER_ID + '/score').set(playerState.score);
+                updateScoreDisplay();
+                
+                showFeedback(first.el, '+15');
+            } else {
+                // No match - short error vibration
+                vibrate([30, 20, 30]);
+                
+                first.el.textContent = '❓';
+                second.el.textContent = '❓';
+                first.el.classList.remove('flipped');
+                second.el.classList.remove('flipped');
+            }
+
+            memoryFlipped = [];
+        }
+
+        // Deli Counter Game
+        function setupDeliGame() {
             const gameArea = document.getElementById('game-area');
             
             gameArea.innerHTML = `
-                <div style="background-image: url('deli-background.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; position: relative;">
+                <div class="boss-container" style="background-image: url('deli-background.png'); background-size: cover; background-position: center; position: relative; overflow: hidden;">
                     <!-- Dark overlay for better contrast -->
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.3); pointer-events: none;"></div>
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); pointer-events: none;"></div>
                     
-                    <div style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center;">
-                        <img src="Cara.jpg" id="cara-deli" style="width: 250px; height: 250px; border-radius: 50%; border: 8px solid #ff00ff; box-shadow: 0 0 40px #ff00ff, 0 10px 40px rgba(0, 0, 0, 0.5); cursor: pointer; animation: deliFloat 1.5s ease-in-out infinite; user-select: none;">
-                        <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff, 0 0 40px #ff00ff, 2px 2px 4px rgba(0,0,0,0.8); margin: 30px 0; text-align: center; font-weight: bold;">
+                    <!-- Cara in center -->
+                    <div style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;">
+                        <img src="Cara.jpg" id="cara-deli" style="width: 200px; height: 200px; border-radius: 50%; border: 6px solid #ff00ff; box-shadow: 0 0 30px #ff00ff, 0 10px 40px rgba(0, 0, 0, 0.5); cursor: pointer; user-select: none; animation: deliFloat 1.5s ease-in-out infinite;">
+                        <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 2px 2px 4px rgba(0,0,0,0.8); margin: 25px 0; text-align: center; font-weight: bold;">
                             CARA'S CHRISTMAS DELI COUNTER
                         </div>
-                        <div style="font-size: 1.2rem; color: #00ff00; text-shadow: 0 0 20px #00ff00, 2px 2px 4px rgba(0,0,0,0.8); text-align: center; line-height: 1.8; max-width: 600px;">
+                        <div class="boss-instruction" style="margin-top: 15px; background: rgba(0, 0, 0, 0.8); padding: 15px; border-radius: 10px; border: 2px solid #ff00ff;">
                             TAP CARA TO GET YOUR TICKET!<br>
-                            <span style="font-size: 0.9rem;">Most taps wins this round!</span>
+                            <span style="font-size: 0.8rem;">+10 points per tap!</span><br>
+                            <span style="font-size: 0.7rem; color: #ffff00;">Most taps wins this round!</span>
                         </div>
                     </div>
                 </div>
                 <style>
                     @keyframes deliFloat {
                         0%, 100% { transform: translateY(0) scale(1); }
-                        50% { transform: translateY(-15px) scale(1.05); }
-                    }
-                    #cara-deli:active {
-                        transform: scale(0.9) !important;
+                        50% { transform: translateY(-12px) scale(1.03); }
                     }
                 </style>
             `;
-            
-            // No spawning or health tracking - players just tap Cara image
-            // Points are awarded on each tap (handled in player catching)
+
+            const cara = document.getElementById('cara-deli');
+            cara.addEventListener('click', tapCara);
+            cara.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                tapCara();
+            });
         }
 
-        function startSpeedGameHost() {
-            // Speed game - show message on host screen
-            const gameArea = document.getElementById('game-area');
+        function tapCara() {
+            // Initialize audio on first interaction
+            if (!audioContext) initAudio();
             
-            gameArea.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
-                    <div style="font-size: 5rem; margin-bottom: 30px; animation: pulse 1s ease-in-out infinite;">⚡</div>
-                    <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff; margin-bottom: 20px;">
-                        TAP ME OUTTA HERE
-                    </div>
-                    <div style="font-size: 1.3rem; color: #00ff00; line-height: 1.8; max-width: 600px;">
-                        Players are tapping targets on their phones!<br>
-                        <span style="font-size: 1rem; color: #ffff00;">First tap wins +20 points!</span>
-                    </div>
-                </div>
-                <style>
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); opacity: 1; }
-                        50% { transform: scale(1.2); opacity: 0.8; }
-                    }
-                </style>
-            `;
-        }
-
-        function startMemoryGameHost() {
-            // Memory game - show message on host screen
-            const gameArea = document.getElementById('game-area');
+            // Play tap sound and vibrate
+            playSound('tap');
+            vibrate(30); // Quick tap feedback
             
-            gameArea.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
-                    <div style="font-size: 5rem; margin-bottom: 30px; animation: pulse 1s ease-in-out infinite;">🎁</div>
-                    <div style="font-size: 2rem; color: #ff00ff; text-shadow: 0 0 25px #ff00ff; margin-bottom: 20px;">
-                        MEMORY MATCH
-                    </div>
-                    <div style="font-size: 1.8rem; color: #00ff00; text-shadow: 0 0 20px #00ff00; line-height: 1.8; max-width: 600px; font-weight: bold;">
-                        📱 WATCH YOUR PHONE! 📱
-                    </div>
-                    <div style="font-size: 1.1rem; color: #ffff00; margin-top: 20px;">
-                        Players are finding matching pairs!
-                    </div>
-                </div>
-                <style>
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); opacity: 1; }
-                        50% { transform: scale(1.2); opacity: 0.8; }
-                    }
-                </style>
-            `;
-        }
+            playerState.score += 10;
+            gameRef.child('players/' + PLAYER_ID + '/score').set(playerState.score);
+            updateScoreDisplay();
 
-        function spawnSpeedTarget() {
-            const itemId = ++gameState.itemId;
-            
-            // Randomize elf photos for speed targets
-            const elfPhotos = ['Aaron.jpg', 'Cara.jpg', 'Cricket.jpg', 'Kelly.jpg', 'Philippa.jpg', 'Mi-cool.jpg'];
-            const randomElf = elfPhotos[Math.floor(Math.random() * elfPhotos.length)];
-            
-            const itemData = {
-                id: itemId,
-                image: randomElf,
-                points: 20,
-                x: Math.random() * 80 + 10,
-                y: Math.random() * 60 + 20
-            };
-
-            gameState.activeItems[itemId] = itemData;
-            gameRef.child('activeItems').update({ [itemId]: itemData });
-
-            setTimeout(() => {
-                delete gameState.activeItems[itemId];
-                gameRef.child('activeItems/' + itemId).remove();
-            }, 1200);
-        }
-
-        function nextRound() {
-            document.getElementById('game-area').innerHTML = '';
-            gameState.activeItems = {};
-            gameRef.child('activeItems').set({});
-
-            if (gameState.currentRound < ROUNDS.length - 1) {
-                setTimeout(() => startRound(gameState.currentRound + 1), 2000);
-            } else {
-                endGame();
+            const cara = document.getElementById('cara-deli');
+            if (cara) {
+                showFeedback(cara, '+10');
+                
+                // Tap effect
+                cara.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    cara.style.transform = 'scale(1)';
+                }, 100);
             }
         }
 
-        function endGame() {
-            gameState.isRunning = false;
-            gameState.gameOver = true;
+        function showFeedback(element, text) {
+            const feedback = document.createElement('div');
+            feedback.className = 'tap-feedback';
+            feedback.textContent = text;
+            feedback.style.left = element.offsetLeft + element.offsetWidth / 2 + 'px';
+            feedback.style.top = element.offsetTop + 'px';
+            feedback.style.color = '#00ff00';
+            feedback.style.textShadow = '0 0 20px #00ff00';
             
-            gameRef.update({
-                isRunning: false,
-                gameOver: true
-            });
-
-            document.getElementById('game-screen').classList.remove('active');
-            document.getElementById('end-screen').classList.add('active');
-
-            const sorted = Object.values(gameState.players).sort((a, b) => (b.score || 0) - (a.score || 0));
-            const podium = document.getElementById('podium');
-            
-            // Simple design: Winners at top, team at bottom!
-            let podiumHTML = `
-                <style>
-                    @keyframes neonFlash {
-                        0%, 100% { 
-                            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor, 0 0 40px currentColor;
-                            opacity: 1;
-                        }
-                        50% { 
-                            text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor, 0 0 20px currentColor;
-                            opacity: 0.8;
-                        }
-                    }
-                    @keyframes medalSpin {
-                        0% { transform: rotateY(0deg) scale(1); }
-                        25% { transform: rotateY(180deg) scale(1.1); }
-                        50% { transform: rotateY(360deg) scale(1); }
-                        75% { transform: rotateY(180deg) scale(1.1); }
-                        100% { transform: rotateY(360deg) scale(1); }
-                    }
-                    @keyframes slideInFromBottom {
-                        from { transform: translateY(100px); opacity: 0; }
-                        to { transform: translateY(0); opacity: 1; }
-                    }
-                    @keyframes teamBounce {
-                        0%, 100% { transform: translateY(0); }
-                        50% { transform: translateY(-10px); }
-                    }
-                    @keyframes starBurst {
-                        0% { transform: scale(0) rotate(0deg); opacity: 0; }
-                        50% { opacity: 1; }
-                        100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
-                    }
-                </style>
-
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 500px; padding: 20px;">
-                    
-                    <!-- TOP: WINNERS with BIG MEDALS -->
-                    <div style="text-align: center; width: 100%; margin-bottom: 30px;">
-                        <div style="display: flex; justify-content: center; align-items: flex-start; gap: 60px; margin-bottom: 40px;">
-            `;
-            
-            // Top 3 winners with medals
-            const medals = ['🥇', '🥈', '🥉'];
-            const colors = ['#ffd700', '#c0c0c0', '#cd7f32'];
-            const sizes = ['8rem', '6rem', '5rem'];
-            
-            sorted.slice(0, 3).forEach((p, i) => {
-                podiumHTML += `
-                    <div style="display: flex; flex-direction: column; align-items: center; animation: slideInFromBottom 0.6s ease-out ${i * 0.2}s both;">
-                        <!-- Big spinning medal -->
-                        <div style="font-size: ${sizes[i]}; animation: medalSpin 4s ease-in-out infinite; animation-delay: ${i * 0.5}s;">
-                            ${medals[i]}
-                        </div>
-                        
-                        <!-- Flashing name -->
-                        <div style="font-size: 2rem; font-weight: bold; color: ${colors[i]}; margin: 15px 0; animation: neonFlash 2s ease-in-out infinite; animation-delay: ${i * 0.3}s; letter-spacing: 2px; text-transform: uppercase;">
-                            ${p.name}
-                        </div>
-                        
-                        <!-- Score with stars -->
-                        <div style="position: relative; display: inline-block;">
-                            <div style="font-size: 1.8rem; color: #fff; text-shadow: 0 0 20px ${colors[i]}; font-weight: bold;">
-                                ${p.score || 0} PTS
-                            </div>
-                            <div style="position: absolute; top: -10px; left: -20px; font-size: 2rem; animation: starBurst 2s ease-out infinite; animation-delay: ${i * 0.4}s;">⭐</div>
-                            <div style="position: absolute; top: -10px; right: -20px; font-size: 2rem; animation: starBurst 2s ease-out infinite; animation-delay: ${i * 0.4 + 1}s;">⭐</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            podiumHTML += `
-                        </div>
-                    </div>
-
-                    <!-- MIDDLE: MESSAGE -->
-                    <div style="font-size: 1.8rem; color: #ffff00; text-shadow: 0 0 25px #ffff00, 0 0 40px #ffff00; margin: 30px 0; text-align: center; line-height: 1.6; animation: neonFlash 3s ease-in-out infinite; max-width: 700px;">
-                        🎄 WISHING THE BEST TEAM EVER<br>A FAB CHRISTMAS AND BRILLIANT '26! 🎄
-                    </div>
-
-                    <!-- BOTTOM: ALL THE TEAM -->
-                    <div style="width: 100%; margin-top: 30px;">
-                        <div style="font-size: 1.5rem; color: #00ff00; text-shadow: 0 0 20px #00ff00; text-align: center; margin-bottom: 20px; font-weight: bold;">
-                            🎅 THE TEAM 🎅
-                        </div>
-                        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 20px; border: 3px solid #00ff00; box-shadow: 0 0 30px #00ff00;">
-            `;
-            
-            // Show ALL team members at bottom
-            const allTeamPhotos = ['Aaron.jpg', 'Cara.jpg', 'Cricket.jpg', 'Kelly.jpg', 'Philippa.jpg', 'Mi-cool.jpg'];
-            const teamNames = ['Aaron', 'Cara', 'Cricket', 'Kelly', 'Philippa', 'Mi-cool'];
-            
-            allTeamPhotos.forEach((photo, i) => {
-                podiumHTML += `
-                    <div style="display: flex; flex-direction: column; align-items: center; animation: slideInFromBottom 0.5s ease-out ${i * 0.1 + 0.8}s both;">
-                        <img src="${photo}" 
-                             style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #00ff00; box-shadow: 0 0 20px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${i * 0.2}s;"
-                             onerror="this.style.display='none';">
-                        <div style="font-size: 0.9rem; color: #fff; margin-top: 8px; text-shadow: 0 0 10px #00ff00; font-weight: bold;">
-                            ${teamNames[i]}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            podiumHTML += `
-                        </div>
-                    </div>
-                    
-                </div>
-            `;
-            
-            podium.innerHTML = podiumHTML;
+            element.parentElement.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 800);
         }
 
-        // Initialize
-        window.onload = () => {
-            if (!checkFirebaseConfig()) {
-                console.log('No Firebase config found, showing setup screen');
-            }
-        };
+        function showEndScreen() {
+            showScreen('end-screen');
+
+            // Get final rankings
+            gameRef.child('players').once('value').then((snapshot) => {
+                const players = snapshot.val() || {};
+                const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+                const rank = sorted.findIndex(p => p.id === PLAYER_ID) + 1;
+
+                const rankEl = document.getElementById('final-rank');
+                if (rank === 1) {
+                    rankEl.textContent = '🥇 1ST PLACE!';
+                    rankEl.style.color = '#ffd700';
+                } else if (rank === 2) {
+                    rankEl.textContent = '🥈 2ND PLACE!';
+                    rankEl.style.color = '#c0c0c0';
+                } else if (rank === 3) {
+                    rankEl.textContent = '🥉 3RD PLACE!';
+                    rankEl.style.color = '#cd7f32';
+                } else {
+                    rankEl.textContent = `#${rank} PLACE`;
+                    rankEl.style.color = '#00ffff';
+                }
+            });
+        }
     </script>
 </body>
 </html>
