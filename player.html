@@ -371,6 +371,24 @@
             color: #ff0000;
         }
 
+        .sound-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #ffff00;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            z-index: 10000;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sound-toggle:active {
+            transform: scale(0.9);
+        }
+
         @media (max-width: 480px) {
             h1 { font-size: 1.3rem; }
             .falling-item { font-size: 3rem; }
@@ -382,6 +400,7 @@
 </head>
 <body>
     <div class="connection-status" id="connection-status">🟡 INIT</div>
+    <div class="sound-toggle" id="sound-toggle" onclick="toggleSound()" title="Toggle Sound">🔊</div>
 
     <!-- Join Screen -->
     <div id="join-screen" class="screen active">
@@ -470,10 +489,88 @@
             score: 0
         };
 
+        const ROUNDS = [
+            { name: 'CATCH RUSH', icon: '🎁', type: 'catch', duration: 90 },
+            { name: 'MEMORY MATCH', icon: '🧠', type: 'memory', duration: 90 },
+            { name: 'SPEED TAP', icon: '⚡', type: 'speed', duration: 90 },
+            { name: "CARA'S DELI COUNTER", icon: '🎟️', type: 'deli', duration: 15 }
+        ];
+
         let activeItems = new Map();
         let memoryFlipped = [];
         let memoryCards = [];
         let currentRound = -1;
+        
+        // Sound and Vibration Settings
+        let soundEnabled = true;
+        let audioContext = null;
+
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Play sound effect
+        function playSound(type) {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Different sounds for different actions
+            if (type === 'catch-good') {
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            } else if (type === 'catch-bad') {
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            } else if (type === 'tap') {
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+            } else if (type === 'match') {
+                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1500, audioContext.currentTime + 0.15);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+            } else if (type === 'countdown') {
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+            } else if (type === 'go') {
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            }
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // Vibrate phone
+        function vibrate(pattern) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle');
+            if (btn) {
+                btn.textContent = soundEnabled ? '🔊' : '🔇';
+            }
+        }
 
         // Initialize Firebase immediately
         window.onload = function() {
@@ -643,15 +740,63 @@
             activeItems.clear();
             memoryFlipped = [];
 
-            // Memory game setup
-            if (roundIndex === 1) {
-                setupMemoryGame();
+            // Initialize audio if not already
+            if (!audioContext) initAudio();
+
+            // Show instruction screen with countdown
+            const round = ROUNDS[roundIndex];
+            let instructionText = '';
+            
+            if (round.type === 'catch') {
+                instructionText = 'TAP FALLING ELVES!<br>First tap wins!';
+            } else if (round.type === 'memory') {
+                instructionText = 'FIND MATCHING PAIRS!<br>+15 per match';
+            } else if (round.type === 'speed') {
+                instructionText = 'TAP TARGETS FAST!<br>+20 per hit';
+            } else if (round.type === 'deli') {
+                instructionText = 'TAP CARA AS FAST AS YOU CAN!<br>Most taps wins!';
             }
 
-            // Boss game setup
-            if (roundIndex === 3) {
-                setupBossGame();
-            }
+            gameArea.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">${round.icon}</div>
+                    <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff; margin-bottom: 20px;">${round.name}</div>
+                    <div style="font-size: 1rem; color: #00ff00; line-height: 1.8;">${instructionText}</div>
+                    <div style="font-size: 2.5rem; color: #ffff00; margin-top: 30px; text-shadow: 0 0 25px #ffff00;" id="player-countdown">3</div>
+                </div>
+            `;
+
+            // Countdown with sounds
+            let countdown = 3;
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                const countdownEl = document.getElementById('player-countdown');
+                if (countdownEl) {
+                    if (countdown > 0) {
+                        countdownEl.textContent = countdown;
+                        playSound('countdown');
+                        vibrate(50);
+                    } else {
+                        countdownEl.textContent = 'GO!';
+                        playSound('go');
+                        vibrate(100);
+                    }
+                }
+                
+                if (countdown < 0) {
+                    clearInterval(countdownInterval);
+                    // Setup round after countdown
+                    setTimeout(() => {
+                        gameArea.innerHTML = '';
+                        
+                        if (roundIndex === 1) {
+                            setupMemoryGame();
+                        } else if (roundIndex === 3) {
+                            setupDeliGame();
+                        }
+                    }, 500);
+                }
+            }, 1000);
         }
 
         function syncItems(items) {
@@ -689,16 +834,32 @@
             const itemEl = document.createElement('div');
             
             if (currentRound === 0) {
-                // Catch game - falling items
+                // Catch game - falling items (team photos or emojis)
                 itemEl.className = 'falling-item';
-                itemEl.textContent = itemData.emoji;
+                
+                if (itemData.image) {
+                    // Team photo
+                    const img = document.createElement('img');
+                    img.src = itemData.image;
+                    img.style.width = '70px';
+                    img.style.height = '70px';
+                    img.style.borderRadius = '50%';
+                    img.style.border = '3px solid ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
+                    img.style.boxShadow = '0 0 15px ' + (itemData.points > 0 ? '#00ff00' : '#ff0000');
+                    img.style.pointerEvents = 'none';
+                    itemEl.appendChild(img);
+                } else {
+                    // Emoji for bad items
+                    itemEl.textContent = itemData.emoji;
+                    itemEl.style.color = itemData.points > 0 ? '#ffff00' : '#ff0000';
+                }
+                
                 itemEl.style.left = itemData.x + '%';
                 itemEl.style.top = itemData.y + 'px';
-                itemEl.style.color = itemData.points > 0 ? '#ffff00' : '#ff0000';
             } else if (currentRound === 2) {
                 // Speed game - targets
                 itemEl.className = 'speed-target';
-                itemEl.textContent = itemData.emoji;
+                itemEl.textContent = itemData.emoji || '🎯';
                 itemEl.style.left = itemData.x + '%';
                 itemEl.style.top = itemData.y + '%';
             }
@@ -716,6 +877,18 @@
         function catchItem(itemId, itemData) {
             const itemEl = activeItems.get(itemId);
             if (!itemEl) return;
+
+            // Initialize audio on first interaction
+            if (!audioContext) initAudio();
+
+            // Play sound and vibrate
+            if (itemData.points > 0) {
+                playSound('catch-good');
+                vibrate(50); // Short vibration for good items
+            } else {
+                playSound('catch-bad');
+                vibrate([100, 50, 100]); // Pattern for bad items
+            }
 
             // Send catch to Firebase
             gameRef.child('caughtItems').push({
@@ -767,6 +940,13 @@
             if (cardEl.classList.contains('matched')) return;
             if (cardEl.classList.contains('flipped')) return;
 
+            // Initialize audio if not already
+            if (!audioContext) initAudio();
+            
+            // Play flip sound
+            playSound('tap');
+            vibrate(20);
+
             const icon = cardEl.dataset.icon;
             cardEl.textContent = icon;
             cardEl.classList.add('flipped');
@@ -785,6 +965,10 @@
                 first.el.classList.add('matched');
                 second.el.classList.add('matched');
                 
+                // Play match sound and vibrate
+                playSound('match');
+                vibrate(100);
+                
                 // Award points locally and sync to Firebase
                 playerState.score += 15;
                 gameRef.child('players/' + PLAYER_ID + '/score').set(playerState.score);
@@ -792,7 +976,9 @@
                 
                 showFeedback(first.el, '+15');
             } else {
-                // No match
+                // No match - short error vibration
+                vibrate([30, 20, 30]);
+                
                 first.el.textContent = '❓';
                 second.el.textContent = '❓';
                 first.el.classList.remove('flipped');
@@ -802,76 +988,59 @@
             memoryFlipped = [];
         }
 
-        // Boss Game
-        function setupBossGame() {
+        // Deli Counter Game
+        function setupDeliGame() {
             const gameArea = document.getElementById('game-area');
             
             gameArea.innerHTML = `
                 <div class="boss-container">
-                    <div class="boss-sprite" id="boss-sprite">😈</div>
-                    <div style="font-size: 1.8rem; color: #ff0000; text-shadow: 0 0 20px #ff0000; margin-bottom: 20px;">
-                        THE GRINCH
+                    <img src="Cara.jpg" id="cara-deli" style="width: 200px; height: 200px; border-radius: 50%; border: 6px solid #ff00ff; box-shadow: 0 0 30px #ff00ff; cursor: pointer; user-select: none; animation: deliFloat 1.5s ease-in-out infinite;">
+                    <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff; margin: 25px 0; text-align: center;">
+                        CARA'S CHRISTMAS DELI COUNTER
                     </div>
-                    <div class="boss-health">
-                        <div class="health-bar">
-                            <div class="health-fill" id="health-fill" style="width: 100%;"></div>
-                        </div>
-                        <div class="health-text" id="health-text">100 HP</div>
-                    </div>
-                    <div class="boss-instruction">
-                        TAP TO ATTACK!<br>
-                        <span style="font-size: 0.8rem;">+10 points per hit!</span>
+                    <div class="boss-instruction" style="margin-top: 15px;">
+                        TAP CARA TO GET YOUR TICKET!<br>
+                        <span style="font-size: 0.8rem;">+10 points per tap!</span><br>
+                        <span style="font-size: 0.7rem; color: #ffff00;">Most taps wins this round!</span>
                     </div>
                 </div>
+                <style>
+                    @keyframes deliFloat {
+                        0%, 100% { transform: translateY(0) scale(1); }
+                        50% { transform: translateY(-12px) scale(1.03); }
+                    }
+                </style>
             `;
 
-            const boss = document.getElementById('boss-sprite');
-            boss.addEventListener('click', hitBoss);
-            boss.addEventListener('touchstart', (e) => {
+            const cara = document.getElementById('cara-deli');
+            cara.addEventListener('click', tapCara);
+            cara.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                hitBoss();
-            });
-
-            // Listen for boss health updates (from other players)
-            gameRef.child('bossHealth').on('value', (snapshot) => {
-                const health = snapshot.val();
-                if (health !== null) {
-                    updateBossHealth(health);
-                }
+                tapCara();
             });
         }
 
-        function hitBoss() {
+        function tapCara() {
+            // Initialize audio on first interaction
+            if (!audioContext) initAudio();
+            
+            // Play tap sound and vibrate
+            playSound('tap');
+            vibrate(30); // Quick tap feedback
+            
             playerState.score += 10;
             gameRef.child('players/' + PLAYER_ID + '/score').set(playerState.score);
             updateScoreDisplay();
 
-            // Report hit to host
-            gameRef.child('caughtItems').push({
-                itemId: Date.now(),
-                playerId: PLAYER_ID,
-                isBossHit: true,
-                timestamp: Date.now()
-            });
-
-            const boss = document.getElementById('boss-sprite');
-            showFeedback(boss, '+10');
-            
-            // Shake effect
-            boss.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                boss.style.transform = 'scale(1)';
-            }, 100);
-        }
-
-        function updateBossHealth(health) {
-            const healthFill = document.getElementById('health-fill');
-            const healthText = document.getElementById('health-text');
-            
-            if (healthFill && healthText) {
-                const clampedHealth = Math.max(0, Math.min(100, health));
-                healthFill.style.width = clampedHealth + '%';
-                healthText.textContent = Math.round(clampedHealth) + ' HP';
+            const cara = document.getElementById('cara-deli');
+            if (cara) {
+                showFeedback(cara, '+10');
+                
+                // Tap effect
+                cara.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    cara.style.transform = 'scale(1)';
+                }, 100);
             }
         }
 
