@@ -652,24 +652,37 @@
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
             
+            // Round-specific frequency adjustments
+            let freqMultiplier = 1;
+            if (currentRound === 0) {
+                freqMultiplier = 1.2; // Round 1: Higher pitched, bouncy
+            } else if (currentRound === 1) {
+                freqMultiplier = 0.9; // Round 2: Lower, melodic
+            } else if (currentRound === 2) {
+                freqMultiplier = 1.5; // Round 3: Very high, urgent
+            } else if (currentRound === 3) {
+                freqMultiplier = 0.7; // Round 4: Low, funny
+            }
+            
             // Different sounds for different actions
             if (type === 'catch-good') {
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(800 * freqMultiplier, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200 * freqMultiplier, audioContext.currentTime + 0.1);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
             } else if (type === 'catch-bad') {
-                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+                oscillator.frequency.setValueAtTime(200 * freqMultiplier, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100 * freqMultiplier, audioContext.currentTime + 0.2);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
             } else if (type === 'tap') {
-                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(600 * freqMultiplier, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
             } else if (type === 'match') {
-                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(1500, audioContext.currentTime + 0.15);
+                // Memory match: musical chord-like sound
+                oscillator.frequency.setValueAtTime(1000 * freqMultiplier, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1500 * freqMultiplier, audioContext.currentTime + 0.15);
                 gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
             } else if (type === 'countdown') {
@@ -892,10 +905,33 @@
                     <div style="font-size: 3rem; margin-bottom: 20px;">${round.icon}</div>
                     <div style="font-size: 1.5rem; color: #ff00ff; text-shadow: 0 0 20px #ff00ff; margin-bottom: 20px;">${round.name}</div>
                     <div style="font-size: 1rem; color: #00ff00; line-height: 1.8;">${instructionText}</div>
-                    <div style="font-size: 2.5rem; color: #ffff00; margin-top: 30px; text-shadow: 0 0 25px #ffff00;" id="player-countdown">3</div>
+                    <div style="font-size: 1.5rem; color: #ffff00; margin-top: 30px; text-shadow: 0 0 15px #ffff00; animation: pulse 1.5s ease-in-out infinite;" id="waiting-message">
+                        ⏳ Waiting for host to start... ⏳
+                    </div>
+                    <div style="font-size: 2.5rem; color: #ffff00; margin-top: 30px; text-shadow: 0 0 25px #ffff00; display: none;" id="player-countdown">3</div>
                 </div>
             `;
 
+            // Listen for host to click start button
+            const roundStartListener = gameRef.child('roundStarted').on('value', (snapshot) => {
+                const started = snapshot.val();
+                if (started === true) {
+                    // Remove listener
+                    gameRef.child('roundStarted').off('value', roundStartListener);
+                    
+                    // Hide waiting message, show countdown
+                    const waitingMsg = document.getElementById('waiting-message');
+                    const countdownEl = document.getElementById('player-countdown');
+                    if (waitingMsg) waitingMsg.style.display = 'none';
+                    if (countdownEl) countdownEl.style.display = 'block';
+                    
+                    // Start countdown
+                    startPlayerCountdown(round);
+                }
+            });
+        }
+
+        function startPlayerCountdown(round) {
             // Countdown with sounds - 3 seconds
             let countdown = 3;
             const countdownInterval = setInterval(() => {
@@ -1064,8 +1100,9 @@
                 timestamp: Date.now()
             });
 
-            // Show feedback
-            showFeedback(itemEl, '✓');
+            // Show feedback with points gained/lost
+            const pointsText = itemData.points > 0 ? `+${itemData.points}` : `${itemData.points}`;
+            showFeedback(itemEl, pointsText);
 
             // Remove item locally
             itemEl.remove();
