@@ -584,10 +584,6 @@
         <div class="end-container">
             <div class="setup-panel">
                 <h1>🎉 GAME OVER! 🎉</h1>
-                
-                <div style="font-size: 1.5rem; color: #ffff00; margin: 35px 0; text-shadow: 0 0 25px #ffff00; line-height: 1.6;">
-                    🎄 WISHING THE BEST TEAM EVER<br>A FAB CHRISTMAS AND BRILLIANT '26! 🎄
-                </div>
 
                 <div class="podium-container" id="podium"></div>
 
@@ -1226,12 +1222,12 @@
                 <style>
                     @keyframes neonFlash {
                         0%, 100% { 
-                            text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+                            text-shadow: 0 0 3px currentColor, 0 0 6px currentColor;
                             opacity: 1;
                         }
                         50% { 
-                            text-shadow: 0 0 3px currentColor, 0 0 8px currentColor;
-                            opacity: 0.9;
+                            text-shadow: 0 0 2px currentColor, 0 0 4px currentColor;
+                            opacity: 0.95;
                         }
                     }
                     @keyframes medalSpin {
@@ -1256,17 +1252,17 @@
                     }
                 </style>
 
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 500px; padding: 20px;">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 10px; max-height: 85vh; overflow-y: auto;">
                     
                     <!-- TOP: WINNERS with BIG MEDALS -->
-                    <div style="text-align: center; width: 100%; margin-bottom: 30px;">
-                        <div style="display: flex; justify-content: center; align-items: flex-start; gap: 60px; margin-bottom: 40px;">
+                    <div style="text-align: center; width: 100%; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-bottom: 20px;">
             `;
             
             // Top 3 winners with medals
             const medals = ['🥇', '🥈', '🥉'];
             const colors = ['#ffd700', '#c0c0c0', '#cd7f32'];
-            const sizes = ['8rem', '6rem', '5rem'];
+            const sizes = ['5rem', '4rem', '3.5rem'];
             
             sorted.slice(0, 3).forEach((p, i) => {
                 podiumHTML += `
@@ -1277,17 +1273,17 @@
                         </div>
                         
                         <!-- Flashing name -->
-                        <div style="font-size: 2rem; font-weight: bold; color: ${colors[i]}; margin: 15px 0; animation: neonFlash 2s ease-in-out infinite; animation-delay: ${i * 0.3}s; letter-spacing: 2px; text-transform: uppercase;">
+                        <div style="font-size: 1.3rem; font-weight: bold; color: ${colors[i]}; margin: 8px 0; animation: neonFlash 2s ease-in-out infinite; animation-delay: ${i * 0.3}s; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 0 5px ${colors[i]}, 1px 1px 2px rgba(0,0,0,0.8);">
                             ${p.name}
                         </div>
                         
                         <!-- Score with stars -->
                         <div style="position: relative; display: inline-block;">
-                            <div style="font-size: 1.8rem; color: #fff; text-shadow: 0 0 20px ${colors[i]}; font-weight: bold;">
+                            <div style="font-size: 1.2rem; color: #fff; text-shadow: 0 0 8px ${colors[i]}, 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
                                 ${p.score || 0} PTS
                             </div>
-                            <div style="position: absolute; top: -10px; left: -20px; font-size: 2rem; animation: starBurst 2s ease-out infinite; animation-delay: ${i * 0.4}s;">⭐</div>
-                            <div style="position: absolute; top: -10px; right: -20px; font-size: 2rem; animation: starBurst 2s ease-out infinite; animation-delay: ${i * 0.4 + 1}s;">⭐</div>
+                            <div style="position: absolute; top: -8px; left: -15px; font-size: 1.5rem; animation: starBurst 2s ease-out infinite; animation-delay: ${i * 0.4}s;">⭐</div>
+                            <div style="position: absolute; top: -8px; right: -15px; font-size: 1.5rem; animation: starBurst 2s ease-out infinite; animation-delay: ${i * 0.4 + 1}s;">⭐</div>
                         </div>
                     </div>
                 `;
@@ -1298,18 +1294,18 @@
                     </div>
 
                     <!-- MIDDLE: MESSAGE -->
-                    <div style="font-size: 1.5rem; color: #ffff00; text-shadow: 0 0 8px #ffff00, 2px 2px 4px rgba(0,0,0,0.8); margin: 30px 0; text-align: center; line-height: 1.6; animation: neonFlash 3s ease-in-out infinite; max-width: 700px; font-weight: bold;">
+                    <div style="font-size: 1.2rem; color: #ffff00; text-shadow: 0 0 5px #ffff00, 1px 1px 2px rgba(0,0,0,0.8); margin: 15px 0; text-align: center; line-height: 1.4; animation: neonFlash 3s ease-in-out infinite; max-width: 700px; font-weight: bold;">
                         🎄 WISHING THE BEST TEAM EVER<br>A FAB CHRISTMAS AND BRILLIANT '26! 🎄
                     </div>
 
                     <!-- BOTTOM: ALL THE TEAM -->
-                    <div style="width: 100%; margin-top: 30px;">
-                        <div style="font-size: 1.5rem; color: #00ff00; text-shadow: 0 0 10px #00ff00, 2px 2px 4px rgba(0,0,0,0.8); text-align: center; margin-bottom: 20px; font-weight: bold;">
+                    <div style="width: 100%; margin-top: 15px;">
+                        <div style="font-size: 1.2rem; color: #00ff00; text-shadow: 0 0 6px #00ff00, 1px 1px 2px rgba(0,0,0,0.8); text-align: center; margin-bottom: 12px; font-weight: bold;">
                             🎅 THE TEAM 🎅
                         </div>
-                        <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 20px; border: 3px solid #00ff00; box-shadow: 0 0 20px #00ff00;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 15px; border: 3px solid #00ff00; box-shadow: 0 0 15px #00ff00;">
                             <!-- Row 1: Cara, Mi-cool, Cricket -->
-                            <div style="display: flex; justify-content: center; gap: 30px;">
+                            <div style="display: flex; justify-content: center; gap: 25px;">
             `;
             
             // Row 1: Cara, Mi-cool, Cricket
@@ -1323,9 +1319,9 @@
                 podiumHTML += `
                     <div style="display: flex; flex-direction: column; align-items: center; animation: slideInFromBottom 0.5s ease-out ${i * 0.1 + 0.8}s both;">
                         <img src="${member.photo}" 
-                             style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #00ff00; box-shadow: 0 0 15px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${i * 0.2}s;"
+                             style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #00ff00; box-shadow: 0 0 10px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${i * 0.2}s;"
                              onerror="this.style.display='none';">
-                        <div style="font-size: 0.9rem; color: #fff; margin-top: 8px; text-shadow: 0 0 8px #00ff00, 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
+                        <div style="font-size: 0.8rem; color: #fff; margin-top: 5px; text-shadow: 0 0 5px #00ff00, 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
                             ${member.name}
                         </div>
                     </div>
@@ -1335,7 +1331,7 @@
             podiumHTML += `
                             </div>
                             <!-- Row 2: Philippa, Kelly, Aaron -->
-                            <div style="display: flex; justify-content: center; gap: 30px;">
+                            <div style="display: flex; justify-content: center; gap: 25px;">
             `;
             
             // Row 2: Philippa, Kelly, Aaron
@@ -1349,9 +1345,9 @@
                 podiumHTML += `
                     <div style="display: flex; flex-direction: column; align-items: center; animation: slideInFromBottom 0.5s ease-out ${(i + 3) * 0.1 + 0.8}s both;">
                         <img src="${member.photo}" 
-                             style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #00ff00; box-shadow: 0 0 15px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${(i + 3) * 0.2}s;"
+                             style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid #00ff00; box-shadow: 0 0 10px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${(i + 3) * 0.2}s;"
                              onerror="this.style.display='none';">
-                        <div style="font-size: 0.9rem; color: #fff; margin-top: 8px; text-shadow: 0 0 8px #00ff00, 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
+                        <div style="font-size: 0.8rem; color: #fff; margin-top: 5px; text-shadow: 0 0 5px #00ff00, 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
                             ${member.name}
                         </div>
                     </div>
