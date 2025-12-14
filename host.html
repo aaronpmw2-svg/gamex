@@ -113,7 +113,29 @@
             border-radius: 20px;
             box-shadow: 0 0 60px #00ffff;
             max-width: 900px;
+            width: 90%;
             text-align: center;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        @media (max-width: 768px) {
+            .setup-panel {
+                padding: 30px 40px;
+                width: 95%;
+                max-height: 95vh;
+            }
+            
+            h1 {
+                font-size: 2rem !important;
+            }
+        }
+
+        @media (max-height: 800px) {
+            .setup-panel {
+                padding: 30px 40px;
+                max-height: 95vh;
+            }
         }
 
         h1 {
@@ -380,12 +402,18 @@
             justify-content: center;
             height: 100%;
             flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
         }
 
         .podium-container {
             display: flex;
             justify-content: center;
             align-items: flex-end;
+            width: 100%;
+            max-width: 1200px;
+            overflow-x: auto;
+        }
             gap: 35px;
             margin: 60px 0;
         }
@@ -899,7 +927,12 @@
                     <div class="round-icon">${round.icon}</div>
                     <div class="round-title">${round.name}</div>
                     <div class="round-desc" style="font-size: 1.2rem; line-height: 1.8;">${instructionText}</div>
-                    <div class="round-desc" style="margin-top: 20px; font-size: 1.8rem; color: #ffff00;">Starting in <span id="countdown">15</span>...</div>
+                    <button class="btn" onclick="startRoundCountdown()" style="margin-top: 30px; font-size: 1.5rem; padding: 15px 40px; animation: buttonGlow 2s ease-in-out infinite;">
+                        ▶ START ROUND ◀
+                    </button>
+                    <div id="countdown-display" style="font-size: 1.8rem; color: #ffff00; margin-top: 20px; display: none;">
+                        Starting in <span id="countdown">3</span>...
+                    </div>
                 </div>
             `;
 
@@ -908,9 +941,20 @@
                 roundData: round,
                 timeLeft: round.duration
             });
+        }
 
-            // Countdown before starting - 15 seconds for players to read!
-            let countdown = 15;
+        // Function called when host clicks "START ROUND" button
+        function startRoundCountdown() {
+            const currentRoundIndex = gameState.currentRound;
+            const round = ROUNDS[currentRoundIndex];
+            const gameArea = document.getElementById('game-area');
+            
+            // Hide button, show countdown
+            document.getElementById('countdown-display').style.display = 'block';
+            const btn = gameArea.querySelector('button');
+            if (btn) btn.style.display = 'none';
+            
+            let countdown = 3;
             const countdownInterval = setInterval(() => {
                 countdown--;
                 const countdownEl = document.getElementById('countdown');
@@ -1178,12 +1222,12 @@
                 <style>
                     @keyframes neonFlash {
                         0%, 100% { 
-                            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor, 0 0 40px currentColor;
+                            text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
                             opacity: 1;
                         }
                         50% { 
-                            text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor, 0 0 20px currentColor;
-                            opacity: 0.8;
+                            text-shadow: 0 0 3px currentColor, 0 0 8px currentColor;
+                            opacity: 0.9;
                         }
                     }
                     @keyframes medalSpin {
@@ -1250,36 +1294,68 @@
                     </div>
 
                     <!-- MIDDLE: MESSAGE -->
-                    <div style="font-size: 1.8rem; color: #ffff00; text-shadow: 0 0 25px #ffff00, 0 0 40px #ffff00; margin: 30px 0; text-align: center; line-height: 1.6; animation: neonFlash 3s ease-in-out infinite; max-width: 700px;">
-                        🎄 WISHING THE BEST TEAM EVER<br>A FAB CHRISTMAS, HAPPY HOLIDAYS AND BRILLIANT '26 AHEAD! 🎄
+                    <div style="font-size: 1.5rem; color: #ffff00; text-shadow: 0 0 8px #ffff00, 2px 2px 4px rgba(0,0,0,0.8); margin: 30px 0; text-align: center; line-height: 1.6; animation: neonFlash 3s ease-in-out infinite; max-width: 700px; font-weight: bold;">
+                        🎄 WISHING THE BEST TEAM EVER<br>A FAB CHRISTMAS AND BRILLIANT '26! 🎄
                     </div>
 
                     <!-- BOTTOM: ALL THE TEAM -->
                     <div style="width: 100%; margin-top: 30px;">
-                        <div style="font-size: 1.5rem; color: #00ff00; text-shadow: 0 0 20px #00ff00; text-align: center; margin-bottom: 20px; font-weight: bold;">
+                        <div style="font-size: 1.5rem; color: #00ff00; text-shadow: 0 0 10px #00ff00, 2px 2px 4px rgba(0,0,0,0.8); text-align: center; margin-bottom: 20px; font-weight: bold;">
                             🎅 THE TEAM 🎅
                         </div>
-                        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 20px; border: 3px solid #00ff00; box-shadow: 0 0 30px #00ff00;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 20px; border: 3px solid #00ff00; box-shadow: 0 0 20px #00ff00;">
+                            <!-- Row 1: Cara, Mi-cool, Cricket -->
+                            <div style="display: flex; justify-content: center; gap: 30px;">
             `;
             
-            // Show ALL team members at bottom
-            const allTeamPhotos = ['Aaron.jpg', 'Cara.jpg', 'Cricket.jpg', 'Kelly.jpg', 'Philippa.jpg', 'Mi-cool.jpg'];
-            const teamNames = ['Aaron', 'Cara', 'Cricket', 'Kelly', 'Philippa', 'Mi-cool'];
+            // Row 1: Cara, Mi-cool, Cricket
+            const row1 = [
+                { photo: 'Cara.jpg', name: 'Cara' },
+                { photo: 'Mi-cool.jpg', name: 'Mi-cool' },
+                { photo: 'Cricket.jpg', name: 'Cricket' }
+            ];
             
-            allTeamPhotos.forEach((photo, i) => {
+            row1.forEach((member, i) => {
                 podiumHTML += `
                     <div style="display: flex; flex-direction: column; align-items: center; animation: slideInFromBottom 0.5s ease-out ${i * 0.1 + 0.8}s both;">
-                        <img src="${photo}" 
-                             style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #00ff00; box-shadow: 0 0 20px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${i * 0.2}s;"
+                        <img src="${member.photo}" 
+                             style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #00ff00; box-shadow: 0 0 15px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${i * 0.2}s;"
                              onerror="this.style.display='none';">
-                        <div style="font-size: 0.9rem; color: #fff; margin-top: 8px; text-shadow: 0 0 10px #00ff00; font-weight: bold;">
-                            ${teamNames[i]}
+                        <div style="font-size: 0.9rem; color: #fff; margin-top: 8px; text-shadow: 0 0 8px #00ff00, 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
+                            ${member.name}
                         </div>
                     </div>
                 `;
             });
             
             podiumHTML += `
+                            </div>
+                            <!-- Row 2: Philippa, Kelly, Aaron -->
+                            <div style="display: flex; justify-content: center; gap: 30px;">
+            `;
+            
+            // Row 2: Philippa, Kelly, Aaron
+            const row2 = [
+                { photo: 'Philippa.jpg', name: 'Philippa' },
+                { photo: 'Kelly.jpg', name: 'Kelly' },
+                { photo: 'Aaron.jpg', name: 'Aaron' }
+            ];
+            
+            row2.forEach((member, i) => {
+                podiumHTML += `
+                    <div style="display: flex; flex-direction: column; align-items: center; animation: slideInFromBottom 0.5s ease-out ${(i + 3) * 0.1 + 0.8}s both;">
+                        <img src="${member.photo}" 
+                             style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #00ff00; box-shadow: 0 0 15px #00ff00; animation: teamBounce 2s ease-in-out infinite; animation-delay: ${(i + 3) * 0.2}s;"
+                             onerror="this.style.display='none';">
+                        <div style="font-size: 0.9rem; color: #fff; margin-top: 8px; text-shadow: 0 0 8px #00ff00, 1px 1px 2px rgba(0,0,0,0.8); font-weight: bold;">
+                            ${member.name}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            podiumHTML += `
+                            </div>
                         </div>
                     </div>
                     
