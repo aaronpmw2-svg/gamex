@@ -932,6 +932,8 @@
         }
 
         function startPlayerCountdown(round) {
+            const gameArea = document.getElementById('game-area');
+            
             // Countdown with sounds - 3 seconds
             let countdown = 3;
             const countdownInterval = setInterval(() => {
@@ -953,13 +955,16 @@
                     clearInterval(countdownInterval);
                     // Setup round after countdown
                     setTimeout(() => {
-                        gameArea.innerHTML = '';
+                        gameArea.innerHTML = ''; // Clear intro text
                         
-                        if (roundIndex === 1) {
+                        // Start the appropriate game based on round type
+                        if (round.type === 'memory') {
                             setupMemoryGame();
-                        } else if (roundIndex === 3) {
+                        } else if (round.type === 'deli') {
                             setupDeliGame();
                         }
+                        // Catch and speed games are synced via Firebase activeItems
+                        // so no setup needed - they just listen for items
                     }, 500);
                 }
             }, 1000);
@@ -1261,8 +1266,15 @@
             feedback.textContent = text;
             feedback.style.left = element.offsetLeft + element.offsetWidth / 2 + 'px';
             feedback.style.top = element.offsetTop + 'px';
-            feedback.style.color = '#00ff00';
-            feedback.style.textShadow = '0 0 20px #00ff00';
+            
+            // Red for negative points, green for positive
+            if (text.toString().includes('-')) {
+                feedback.style.color = '#ff0000';
+                feedback.style.textShadow = '0 0 20px #ff0000';
+            } else {
+                feedback.style.color = '#00ff00';
+                feedback.style.textShadow = '0 0 20px #00ff00';
+            }
             
             element.parentElement.appendChild(feedback);
             setTimeout(() => feedback.remove(), 800);
