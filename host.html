@@ -939,7 +939,8 @@
             gameRef.update({
                 currentRound: roundIndex,
                 roundData: round,
-                timeLeft: round.duration
+                timeLeft: round.duration,
+                roundStarted: false  // Reset flag for new round
             });
         }
 
@@ -953,6 +954,9 @@
             document.getElementById('countdown-display').style.display = 'block';
             const btn = gameArea.querySelector('button');
             if (btn) btn.style.display = 'none';
+            
+            // Signal to players that round is starting
+            gameRef.update({ roundStarted: true });
             
             let countdown = 3;
             const countdownInterval = setInterval(() => {
